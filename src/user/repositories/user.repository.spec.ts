@@ -105,4 +105,32 @@ describe('UserRepository', () => {
       )
     })
   })
+
+  describe('getById', () => {
+    let user: User
+
+    beforeEach(async () => {
+      const db = new UserDBEntity()
+      db.name = 'name'
+      db.email = 'email'
+      const result = await dataSource.manager.save(db)
+      user = result.toDomain()
+    })
+
+    it('should return correct user', async () => {
+      const result = await userRespository.getById(user.id)
+
+      expect(result).toStrictEqual(AppResult.success(user))
+    })
+
+    it('should return failed with NotFoundException when user not found', async () => {
+      const result = await userRespository.getById('not-exists')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('user with id not-exists not found'),
+        ),
+      )
+    })
+  })
 })

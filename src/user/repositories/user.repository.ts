@@ -58,12 +58,12 @@ export class UserRepository {
   }
 
   async getById(id: string): Promise<AppResult<User>> {
-    // TODO(RDA12): implement save method
-    const user = new User({
-      id: id,
-      name: 'name',
-      email: 'email',
-    })
-    return AppResult.success(user)
+    const result = await this.repository.findOneBy({ id })
+    if (!result) {
+      return AppResult.failed(
+        new NotFoundException(`user with id ${id} not found`),
+      )
+    }
+    return AppResult.success(result.toDomain())
   }
 }
