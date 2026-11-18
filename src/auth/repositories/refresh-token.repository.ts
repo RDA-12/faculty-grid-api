@@ -38,6 +38,19 @@ export class RefreshTokenRepository implements RefreshTokenStore {
     }
   }
 
+  private createDb(record: RefreshTokenRecord) {
+    const db = new RefreshTokenDBEntity()
+    db.id = record.id
+    db.familyId = record.familyId
+    db.userId = record.userId
+    db.createdAt = record.createdAt
+    db.expiresAt = record.expiresAt
+    db.familyExpiresAt = record.familyExpiresAt
+    db.usedAt = record.usedAt
+    db.claims = record.claims
+    return db
+  }
+
   async getRefreshToken(id: string): Promise<RefreshTokenRecord | undefined> {
     this.logger.debug('start get refresh token by its id')
     const row = await this.repository.findOneBy({ id })
@@ -49,8 +62,11 @@ export class RefreshTokenRepository implements RefreshTokenStore {
     return undefined
   }
 
-  saveRefreshToken(record: RefreshTokenRecord): Promise<void> {
-    throw new Error('Method not implemented.')
+  async saveRefreshToken(record: RefreshTokenRecord): Promise<void> {
+    const dbData = this.createDb(record)
+    this.logger.debug('start saving new refresh token')
+    await this.repository.save(dbData)
+    this.logger.debug('refresh token saved')
   }
 
   markRefreshTokenUsed(id: string, at: Date): Promise<boolean> {

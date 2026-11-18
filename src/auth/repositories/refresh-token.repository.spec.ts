@@ -80,4 +80,35 @@ describe('RefreshTokenRepository', () => {
       expect(result).toBeUndefined()
     })
   })
+
+  describe('saveRefreshToken', () => {
+    const record: RefreshTokenRecord = {
+      id: 'id',
+      familyId: 'familyId',
+      userId: 'userId',
+      createdAt: new Date(),
+      expiresAt: new Date(),
+      familyExpiresAt: new Date(),
+      usedAt: new Date(),
+      claims: { id: 'id' },
+    }
+
+    it('should save correct refresh token', async () => {
+      await refreshTokenRepository.saveRefreshToken(record)
+
+      const rows = await dataSource.manager.find(RefreshTokenDBEntity, {
+        take: 1,
+      })
+      const row = rows.pop()
+      expect(row).not.toBeUndefined()
+      expect(row!.id).toStrictEqual(record.id)
+      expect(row!.familyId).toStrictEqual(record.familyId)
+      expect(row!.userId).toStrictEqual(record.userId)
+      expect(row!.createdAt).toStrictEqual(record.createdAt)
+      expect(row!.expiresAt).toStrictEqual(record.expiresAt)
+      expect(row!.familyExpiresAt).toStrictEqual(record.familyExpiresAt)
+      expect(row!.usedAt).toStrictEqual(record.usedAt)
+      expect(row!.claims).toStrictEqual(record.claims)
+    })
+  })
 })
