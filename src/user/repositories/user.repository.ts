@@ -3,10 +3,7 @@ import { AppResult } from '../../common/app-result.js'
 import { User } from '../entities/user.entity.js'
 import type { CreateUserParams } from '../use-cases/create-user.use-case.js'
 import { DataSource, QueryFailedError, type Repository } from 'typeorm'
-import {
-  emailUniqueConstraintName,
-  UserDBEntity,
-} from '../../common/database/entities/user.entity.js'
+import { UserDBEntity } from '../../common/database/entities/user.entity.js'
 import {
   AlreadyExistsException,
   NotFoundException,
@@ -36,8 +33,9 @@ export class UserRepository {
       return AppResult.success(savedEntity.toDomain())
     } catch (error) {
       if (error instanceof QueryFailedError) {
-        const constraint = error.driverError.constraint
-        if (constraint === emailUniqueConstraintName) {
+        const code = error.driverError.code
+        // Postgresql code for unique constraint violation failed
+        if (code === '23505') {
           return AppResult.failed(
             new AlreadyExistsException(
               `user with email ${params.email} already exists`,
