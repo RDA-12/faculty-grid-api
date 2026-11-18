@@ -41,7 +41,12 @@ export class RefreshTokenRepository implements RefreshTokenStore {
   async getRefreshToken(id: string): Promise<RefreshTokenRecord | undefined> {
     this.logger.debug('start get refresh token by its id')
     const row = await this.repository.findOneBy({ id })
-    return this.createRecord(row)
+    if (row) {
+      this.logger.debug('refresh token found')
+      return this.createRecord(row)
+    }
+    this.logger.debug('refresh token not found')
+    return undefined
   }
 
   saveRefreshToken(record: RefreshTokenRecord): Promise<void> {
