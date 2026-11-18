@@ -6,6 +6,7 @@ import { DocumentBuilder, getSchemaPath, SwaggerModule } from '@nestjs/swagger'
 import { FailedResponse, SuccessResponse } from './common/app-response.js'
 import { InvalidRequestException } from './common/app-exception.js'
 import { InvalidRequestExceptionFilter } from './common/exception-filter/invalid-request.exception-filter.js'
+import { UnauthorizedExceptionFilter } from './common/exception-filter/unauthorized.exception-filter.js'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -23,6 +24,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseTransformerIntereceptor())
   app.useGlobalFilters(
     new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
+    new UnauthorizedExceptionFilter(app.get(HttpAdapterHost)),
   )
 
   const config = new DocumentBuilder()
