@@ -70,15 +70,16 @@ export class RefreshTokenRepository implements RefreshTokenStore {
   }
 
   async markRefreshTokenUsed(id: string, at: Date): Promise<boolean> {
+    this.logger.debug('start marking refresh token as used')
     const result = await this.repository.update(
       { id: id, usedAt: IsNull() },
       { usedAt: at },
     )
+    this.logger.debug('refresh token marked')
     return (result.affected ?? 0) === 1
   }
 
-  revokeRefreshTokenFamily(familyId: string): Promise<void> {
-    throw new Error('Method not implemented.')
+  async revokeRefreshTokenFamily(familyId: string): Promise<void> {
   }
 
   isRefreshTokenFamilyRevoked(familyId: string): Promise<boolean> {
