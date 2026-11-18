@@ -3,7 +3,7 @@ import { AppException } from './app-exception.js'
 type Result<T> = AppResultSuccess<T> | AppResultFailed
 
 export class AppResult<T> {
-  constructor(private readonly result: Result<T>) {}
+  constructor(readonly result: Result<T>) {}
 
   static success<T>(data: T): AppResult<T> {
     let result = new AppResultSuccess(data)
