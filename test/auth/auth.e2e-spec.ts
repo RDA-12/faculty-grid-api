@@ -9,7 +9,10 @@ import {
 import { AppResult } from '../../src/common/app-result.js'
 import { UserToken } from '../../src/auth/entities/user-credential.entity.js'
 import { createTestingApp } from '../helper.js'
-import { AppException } from '../../src/common/app-exception.js'
+import {
+  AppException,
+  InvalidCredentialException,
+} from '../../src/common/app-exception.js'
 
 describe('Auth', () => {
   const userToken = new UserToken({
@@ -77,6 +80,21 @@ describe('Auth', () => {
           refreshToken: userToken.refreshToken,
           expiresIn: userToken.expiresIn,
         },
+      })
+    })
+
+    it('should return 401 when LoginUseCase failed with InvalidCredentialException', async () => {
+      const e = new InvalidCredentialException()
+      loginUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send(payload)
+
+      expect(response.statusCode).toBe(401)
+      expect(response.body).toStrictEqual({
+        status: 401,
+        title: e.title,
+        detail: e.detail,
       })
     })
 
