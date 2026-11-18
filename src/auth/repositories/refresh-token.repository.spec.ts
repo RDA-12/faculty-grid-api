@@ -155,4 +155,67 @@ describe('RefreshTokenRepository', () => {
       expect(result).toBeFalsy()
     })
   })
+
+  describe('revokedRefreshTokenFamily', () => {
+    const records: RefreshTokenRecord[] = []
+
+    beforeEach(async () => {
+      for (let i = 0; i < 3; i++) {
+        const insertDb = new RefreshTokenDBEntity()
+        insertDb.id = i.toString()
+        insertDb.familyId = 'familyId'
+        insertDb.userId = 'userId'
+        insertDb.createdAt = new Date()
+        insertDb.expiresAt = new Date()
+        insertDb.familyExpiresAt = new Date()
+        insertDb.claims = { id: 'id' }
+        insertDb.revoked = false
+        const dbData = await dataSource.manager.save(insertDb)
+        const record = {
+          id: dbData.id,
+          familyId: dbData.familyId,
+          userId: dbData.userId,
+          createdAt: dbData.createdAt,
+          expiresAt: dbData.expiresAt,
+          familyExpiresAt: dbData.familyExpiresAt,
+          usedAt: dbData.usedAt ?? undefined,
+          claims: dbData.claims ?? undefined,
+        }
+        records.push(record)
+      }
+    })
+
+    it('should revoked all refresh tokens in same family', async () => {
+      await refreshTokenRepository.revokeRefreshTokenFamily(records[0].familyId)
+
+      const rows = await dataSource.manager.find(RefreshTokenDBEntity, {
+        where: {
+          familyId: records[0].familyId,
+        },
+      })
+      expect(rows.length).toBe(records.length)
+      expect(rows.every((it) => it.revoked)).toBeTruthy()
+    })
+
+    it('should not revoke outside family', async () => {
+      const insertDb = new RefreshTokenDBEntity()
+      insertDb.id = 'outside'
+      insertDb.familyId = 'outsideFamily'
+      insertDb.userId = 'userId'
+      insertDb.createdAt = new Date()
+      insertDb.expiresAt = new Date()
+      insertDb.familyExpiresAt = new Date()
+      insertDb.claims = { id: 'id' }
+      insertDb.revoked = false
+      const outside = await dataSource.manager.save(insertDb)
+
+      await refreshTokenRepository.revokeRefreshTokenFamily(records[0].familyId)
+
+      const row = await dataSource.manager.findOneBy(RefreshTokenDBEntity, {
+        id: outside.id,
+      })
+      expect(row).not.toBeNull()
+      expect(row!.revoked).toBeFalsy()
+    })
+  })
 })

@@ -80,6 +80,9 @@ export class RefreshTokenRepository implements RefreshTokenStore {
   }
 
   async revokeRefreshTokenFamily(familyId: string): Promise<void> {
+    this.logger.debug('start revoke refresh token family')
+    await this.repository.update({ familyId: familyId }, { revoked: true })
+    this.logger.debug('refresh token family revoked')
   }
 
   isRefreshTokenFamilyRevoked(familyId: string): Promise<boolean> {
