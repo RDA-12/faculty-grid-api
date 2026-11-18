@@ -1,4 +1,3 @@
-import { AuthenticationModule } from '@nestjs/authentication'
 import { GetUserByEmailUseCase } from '../../user/use-cases/get-user-by-email.use-case.js'
 import { CredentialRepository } from '../repositories/credential.repository.js'
 import { Test } from '@nestjs/testing'
@@ -9,7 +8,6 @@ import {
   UserToken,
 } from '../entities/user-credential.entity.js'
 import { AppResult } from '../../common/app-result.js'
-import { UserRepository } from '../../user/repositories/user.repository.js'
 import { AppException } from '../../common/app-exception.js'
 import { AppPasswordHasher } from '../utils/app-password-hasher.util.js'
 import { JWT } from '../utils/jwt.util.js'
@@ -26,54 +24,50 @@ describe('LoginUseCase', () => {
     refreshToken: 'refresh',
     expiresIn: 10,
   })
-  let getUserByEmailUseCase: GetUserByEmailUseCase
-  let passwordHasher: AppPasswordHasher
-  let credentialRepository: CredentialRepository
-  let jwt: JWT
+  let getUserByEmailUseCase: { execute: ReturnType<typeof vi.fn> }
+  let passwordHasher: { verify: ReturnType<typeof vi.fn> }
+  let credentialRepository: { getByUserId: ReturnType<typeof vi.fn> }
+  let jwt: { issue: ReturnType<typeof vi.fn> }
   let loginUseCase: LoginUseCase
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        AuthenticationModule.forRoot({
-          accessToken: {
-            key: '3cc4238a01a83902c646ac6e4c288971dcaffc491d7477b8843504838e76d6ab',
-            issuer: 'http://localhost:8000',
-            audience: 'web',
-            ttl: '15m',
-          },
-        }),
-      ],
       providers: [
-        CredentialRepository,
-        UserRepository,
-        GetUserByEmailUseCase,
-        AppPasswordHasher,
-        JWT,
+        {
+          provide: GetUserByEmailUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(user)),
+          },
+        },
+        {
+          provide: AppPasswordHasher,
+          useValue: {
+            verify: vi.fn().mockResolvedValue(AppResult.success(true)),
+          },
+        },
+        {
+          provide: CredentialRepository,
+          useValue: {
+            getByUserId: vi
+              .fn()
+              .mockResolvedValue(AppResult.success(userCredentials)),
+          },
+        },
+        {
+          provide: JWT,
+          useValue: {
+            issue: vi.fn().mockResolvedValue(AppResult.success(userToken)),
+          },
+        },
         LoginUseCase,
       ],
     }).compile()
 
     getUserByEmailUseCase = moduleRef.get(GetUserByEmailUseCase)
-    vi.spyOn(getUserByEmailUseCase, 'execute').mockResolvedValue(
-      AppResult.success(user),
-    )
     passwordHasher = moduleRef.get(AppPasswordHasher)
-    vi.spyOn(passwordHasher, 'verify').mockResolvedValue(
-      AppResult.success(true),
-    )
     credentialRepository = moduleRef.get(CredentialRepository)
-    vi.spyOn(credentialRepository, 'getByUserId').mockResolvedValue(
-      AppResult.success(userCredentials),
-    )
     jwt = moduleRef.get(JWT)
-    vi.spyOn(jwt, 'issue').mockResolvedValue(AppResult.success(userToken))
-    loginUseCase = new LoginUseCase(
-      getUserByEmailUseCase,
-      passwordHasher,
-      credentialRepository,
-      jwt,
-    )
+    loginUseCase = moduleRef.get(LoginUseCase)
   })
 
   afterEach(() => {
@@ -104,7 +98,7 @@ describe('LoginUseCase', () => {
 
   it('should return failed when GetUserByEmailUseCase failed', async () => {
     const e = new AppException('')
-    vi.spyOn(getUserByEmailUseCase, 'execute').mockResolvedValue(
+    vi.spyOn(getUserByEmailUseCase, 'execute').mockResolvedValueOnce(
       AppResult.failed(e),
     )
     const result = await loginUseCase.execute(params)
@@ -117,7 +111,7 @@ describe('LoginUseCase', () => {
 
   it('should return failed when CredentialRepository.getByUserId failed', async () => {
     const e = new AppException('')
-    vi.spyOn(credentialRepository, 'getByUserId').mockResolvedValue(
+    vi.spyOn(credentialRepository, 'getByUserId').mockResolvedValueOnce(
       AppResult.failed(e),
     )
     const result = await loginUseCase.execute(params)
@@ -129,7 +123,9 @@ describe('LoginUseCase', () => {
 
   it('should return failed when AppPasswordHasher.verify failed', async () => {
     const e = new AppException('')
-    vi.spyOn(passwordHasher, 'verify').mockResolvedValue(AppResult.failed(e))
+    vi.spyOn(passwordHasher, 'verify').mockResolvedValueOnce(
+      AppResult.failed(e),
+    )
     const result = await loginUseCase.execute(params)
 
     expect(result).toStrictEqual(AppResult.failed(e))
@@ -138,7 +134,7 @@ describe('LoginUseCase', () => {
 
   it('should return failed when TokenService.issue failed', async () => {
     const e = new AppException('')
-    vi.spyOn(jwt, 'issue').mockResolvedValue(AppResult.failed(e))
+    vi.spyOn(jwt, 'issue').mockResolvedValueOnce(AppResult.failed(e))
     const result = await loginUseCase.execute(params)
 
     expect(result).toStrictEqual(AppResult.failed(e))

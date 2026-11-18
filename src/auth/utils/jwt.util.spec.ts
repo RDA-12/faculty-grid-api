@@ -1,8 +1,4 @@
-import {
-  AuthenticationModule,
-  IssuedTokens,
-  TokenService,
-} from '@nestjs/authentication'
+import { IssuedTokens, TokenService } from '@nestjs/authentication'
 import { JWT } from './jwt.util.js'
 import { Test } from '@nestjs/testing'
 import { AppResult } from '../../common/app-result.js'
@@ -16,21 +12,27 @@ describe('JWT', () => {
     expiresIn: 10,
   }
   const userToken = new UserToken(issuedToken)
-  let nestTokenService: TokenService
+  let nestTokenService: { issue: ReturnType<typeof vi.fn> }
   let jwt: JWT
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AuthenticationModule.forRoot()],
-      providers: [],
+      providers: [
+        {
+          provide: TokenService,
+          useValue: {
+            issue: vi.fn().mockResolvedValue(issuedToken),
+          },
+        },
+        JWT,
+      ],
     }).compile()
 
     nestTokenService = moduleRef.get(TokenService)
-    jwt = new JWT(nestTokenService)
+    jwt = moduleRef.get(JWT)
   })
 
   it('should returns success with correct token when TokenService.issue success', async () => {
-    vi.spyOn(nestTokenService, 'issue').mockResolvedValue(issuedToken)
     const result = await jwt.issue('userId')
 
     expect(result).toStrictEqual(AppResult.success(userToken))
@@ -40,7 +42,9 @@ describe('JWT', () => {
   })
 
   it('should returns failedwhen TokenService.issue failed', async () => {
-    vi.spyOn(nestTokenService, 'issue').mockRejectedValue(new Error('error'))
+    vi.spyOn(nestTokenService, 'issue').mockRejectedValueOnce(
+      new Error('error'),
+    )
     const result = await jwt.issue('userId')
 
     expect(result).toStrictEqual(
