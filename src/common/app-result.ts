@@ -1,10 +1,6 @@
 import { AppException } from './app-exception.js'
 
 type Result<T> = AppResultSuccess<T> | AppResultFailed
-type OnAppResultWhen<T> = {
-  success?: (data: T) => void
-  failed?: (exception: AppException) => void
-}
 
 export class AppResult<T> {
   constructor(private readonly result: Result<T>) {}
@@ -19,13 +15,24 @@ export class AppResult<T> {
     return new AppResult<T>(result)
   }
 
-  when({ success, failed }: OnAppResultWhen<T>) {
-    if (this.result instanceof AppResultSuccess && success) {
-      success(this.result.data)
+  /**
+   * Return T data if this result is success. Otherwise, null
+   */
+  get data(): T | null {
+    if (this.result instanceof AppResultSuccess) {
+      return this.result.data
     }
-    if (this.result instanceof AppResultFailed && failed) {
-      failed(this.result.exception)
+    return null
+  }
+
+  /**
+   * Return AppException if this result is failed. Otherwise, null
+   */
+  get exception(): AppException | null {
+    if (this.result instanceof AppResultFailed) {
+      return this.result.exception
     }
+    return null
   }
 }
 

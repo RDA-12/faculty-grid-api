@@ -1,0 +1,40 @@
+import { AuthenticationModule, PasswordHasher } from '@nestjs/authentication'
+import { AppPasswordHasher } from './app-password-hasher.util.js'
+import { Test } from '@nestjs/testing'
+import { AppResult } from '../../common/app-result.js'
+import { AppException } from '../../common/app-exception.js'
+
+describe('AppPasswordHasher', () => {
+  let nestPasswordHasher: PasswordHasher
+  let passwordHasher: AppPasswordHasher
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AuthenticationModule.forRoot()],
+      providers: [],
+    }).compile()
+
+    nestPasswordHasher = moduleRef.get(PasswordHasher)
+    passwordHasher = new AppPasswordHasher(nestPasswordHasher)
+  })
+
+  it('should returns success with correct verification when PasswordHasher.verify success', async () => {
+    vi.spyOn(nestPasswordHasher, 'verify').mockResolvedValue(false)
+    const result = await passwordHasher.verify('password', 'encoded')
+
+    expect(result).toStrictEqual(AppResult.success(false))
+    expect(nestPasswordHasher.verify).toHaveBeenCalledExactlyOnceWith(
+      'password',
+      'encoded',
+    )
+  })
+
+  it('should returns failed when PasswordHasher.verify failed', async () => {
+    vi.spyOn(nestPasswordHasher, 'verify').mockRejectedValue(new Error('error'))
+    const result = await passwordHasher.verify('password', 'encoded')
+
+    expect(result).toStrictEqual(
+      AppResult.failed(new AppException('Error: error')),
+    )
+  })
+})

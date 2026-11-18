@@ -3,3 +3,9 @@ export class AppException extends Error {
     super(message)
   }
 }
+
+export class InvalidCredentialException extends AppException {
+  constructor() {
+    super('invalid credential')
+  }
+}
