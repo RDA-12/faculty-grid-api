@@ -48,7 +48,13 @@ describe('JWT', () => {
     const result = await jwt.issue('userId')
 
     expect(result).toStrictEqual(
-      AppResult.failed(new AppException('Error: error')),
+      AppResult.failed(
+        new AppException({
+          status: 500,
+          title: 'Failed issuing new jwt token',
+          detail: 'Error: error',
+        }),
+      ),
     )
   })
 })

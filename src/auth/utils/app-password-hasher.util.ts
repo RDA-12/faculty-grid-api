@@ -24,7 +24,13 @@ export class AppPasswordHasher {
       return AppResult.success(verified)
     } catch (error) {
       this.logger.error(`failed to verify password: ${error as Error}`)
-      return AppResult.failed(new AppException(`${error as Error}`))
+      return AppResult.failed(
+        new AppException({
+          status: 500,
+          title: 'Failed verifying hashed password',
+          detail: `${error as Error}`,
+        }),
+      )
     }
   }
 }

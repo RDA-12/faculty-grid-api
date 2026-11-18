@@ -25,7 +25,13 @@ export class JWT {
       return AppResult.success(new UserToken(issuedToken))
     } catch (error) {
       this.logger.error(`failed to issue token: ${error as Error}`)
-      return AppResult.failed(new AppException(`${error as Error}`))
+      return AppResult.failed(
+        new AppException({
+          status: 500,
+          title: 'Failed ussuing new jwt token',
+          detail: `${error as Error}`,
+        }),
+      )
     }
   }
 }

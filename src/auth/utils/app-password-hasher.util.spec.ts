@@ -42,7 +42,13 @@ describe('AppPasswordHasher', () => {
     const result = await passwordHasher.verify('password', 'encoded')
 
     expect(result).toStrictEqual(
-      AppResult.failed(new AppException('Error: error')),
+      AppResult.failed(
+        new AppException({
+          status: 500,
+          title: 'Failed verifying hashed password',
+          detail: 'Error: error',
+        }),
+      ),
     )
   })
 })

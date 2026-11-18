@@ -97,7 +97,11 @@ describe('LoginUseCase', () => {
   })
 
   it('should return failed when GetUserByEmailUseCase failed', async () => {
-    const e = new AppException('')
+    const e = new AppException({
+      status: 500,
+      title: '',
+      detail: '',
+    })
     vi.spyOn(getUserByEmailUseCase, 'execute').mockResolvedValueOnce(
       AppResult.failed(e),
     )
@@ -110,7 +114,11 @@ describe('LoginUseCase', () => {
   })
 
   it('should return failed when CredentialRepository.getByUserId failed', async () => {
-    const e = new AppException('')
+    const e = new AppException({
+      status: 500,
+      title: '',
+      detail: '',
+    })
     vi.spyOn(credentialRepository, 'getByUserId').mockResolvedValueOnce(
       AppResult.failed(e),
     )
@@ -122,7 +130,11 @@ describe('LoginUseCase', () => {
   })
 
   it('should return failed when AppPasswordHasher.verify failed', async () => {
-    const e = new AppException('')
+    const e = new AppException({
+      status: 500,
+      title: '',
+      detail: '',
+    })
     vi.spyOn(passwordHasher, 'verify').mockResolvedValueOnce(
       AppResult.failed(e),
     )
@@ -133,7 +145,11 @@ describe('LoginUseCase', () => {
   })
 
   it('should return failed when TokenService.issue failed', async () => {
-    const e = new AppException('')
+    const e = new AppException({
+      status: 500,
+      title: '',
+      detail: '',
+    })
     vi.spyOn(jwt, 'issue').mockResolvedValueOnce(AppResult.failed(e))
     const result = await loginUseCase.execute(params)
 

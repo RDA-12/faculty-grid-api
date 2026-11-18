@@ -60,7 +60,11 @@ describe('AuthController', () => {
     })
 
     it('should returns failed when LoginUseCase failed', async () => {
-      const e = new AppException('')
+      const e = new AppException({
+        status: 500,
+        title: '',
+        detail: '',
+      })
       vi.spyOn(loginUseCase, 'execute').mockResolvedValueOnce(
         AppResult.failed(e),
       )

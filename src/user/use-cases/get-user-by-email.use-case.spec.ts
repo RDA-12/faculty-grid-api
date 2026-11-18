@@ -38,7 +38,11 @@ describe('GetUserByEmailUseCase', () => {
   })
 
   it('should return failed with correct exception when UserRepository.getByEmail failed', async () => {
-    const e = new AppException('')
+    const e = new AppException({
+      status: 500,
+      title: '',
+      detail: '',
+    })
     vi.spyOn(userRepository, 'getByEmail').mockResolvedValue(
       AppResult.failed(e),
     )
