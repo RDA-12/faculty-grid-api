@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { UserRepository } from './repositories/user.repository.js'
 import { CreateUserUseCase } from './use-cases/create-user.use-case.js'
 import { GetUserByEmailUseCase } from './use-cases/get-user-by-email.use-case.js'
+import { GetUserByIdUseCase } from './use-cases/get-user-by-id.use-case.js'
 
 /**
  * Handle users data only
@@ -9,7 +10,12 @@ import { GetUserByEmailUseCase } from './use-cases/get-user-by-email.use-case.js
  * User credential data like password is handled by AuthModule
  */
 @Module({
-  providers: [UserRepository, CreateUserUseCase, GetUserByEmailUseCase],
-  exports: [GetUserByEmailUseCase],
+  providers: [
+    UserRepository,
+    CreateUserUseCase,
+    GetUserByEmailUseCase,
+    GetUserByIdUseCase,
+  ],
+  exports: [GetUserByEmailUseCase, GetUserByIdUseCase],
 })
 export class UserModule {}

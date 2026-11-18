@@ -30,4 +30,14 @@ export class UserRepository {
     })
     return AppResult.success(user)
   }
+
+  async getById(id: string): Promise<AppResult<User>> {
+    // TODO(RDA12): implement save method
+    const user = new User({
+      id: id,
+      name: 'name',
+      email: 'email',
+    })
+    return AppResult.success(user)
+  }
 }
