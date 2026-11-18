@@ -22,6 +22,7 @@ async function bootstrap() {
   )
 
   const config = new DocumentBuilder()
+    .addBearerAuth()
     .addGlobalResponse({
       status: 500,
       description: 'Internal failure',
