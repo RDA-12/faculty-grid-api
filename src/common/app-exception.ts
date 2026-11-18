@@ -135,3 +135,14 @@ export class UnexpectedException extends AppException {
     })
   }
 }
+
+/** Exception for requested data is not found in database */
+export class NotFoundException extends AppException {
+  constructor(detail: string) {
+    super({
+      status: 404,
+      title: 'Data not found',
+      detail: detail,
+    })
+  }
+}

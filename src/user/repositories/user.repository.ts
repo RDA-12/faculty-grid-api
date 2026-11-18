@@ -9,6 +9,7 @@ import {
 } from '../../common/database/entities/user.entity.js'
 import {
   AlreadyExistsException,
+  NotFoundException,
   UnexpectedException,
 } from '../../common/app-exception.js'
 
@@ -49,13 +50,13 @@ export class UserRepository {
   }
 
   async getByEmail(email: string): Promise<AppResult<User>> {
-    // TODO(RDA12): implement save method
-    const user = new User({
-      id: 'id',
-      name: email,
-      email: email,
-    })
-    return AppResult.success(user)
+    const result = await this.repository.findOneBy({ email })
+    if (!result) {
+      return AppResult.failed(
+        new NotFoundException(`user with email ${email} not found`),
+      )
+    }
+    return AppResult.success(result.toDomain())
   }
 
   async getById(id: string): Promise<AppResult<User>> {

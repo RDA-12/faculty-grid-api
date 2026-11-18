@@ -4,6 +4,12 @@ import { DataSource } from 'typeorm'
 import { createTestDataSource } from '../../../test/common/database/test-database.js'
 import { CreateUserParams } from '../use-cases/create-user.use-case.js'
 import { UserDBEntity } from '../../common/database/entities/user.entity.js'
+import { User } from '../entities/user.entity.js'
+import { AppResult } from '../../common/app-result.js'
+import {
+  AlreadyExistsException,
+  NotFoundException,
+} from '../../common/app-exception.js'
 
 describe('UserRepository', () => {
   let dataSource: DataSource
@@ -64,14 +70,39 @@ describe('UserRepository', () => {
 
       const result2 = await userRespository.save(params)
       expect(result2.data).toBeNull()
+      expect(result2.exception).toStrictEqual(
+        new AlreadyExistsException(
+          `user with email ${params.email} already exists`,
+        ),
+      )
+    })
+  })
+
+  describe('getByEmail', () => {
+    let user: User
+
+    beforeEach(async () => {
+      const db = new UserDBEntity()
+      db.name = 'name'
+      db.email = 'email'
+      const result = await dataSource.manager.save(db)
+      user = result.toDomain()
     })
 
-    it('should return failed with AlreadyExistException when saving same email', async () => {
-      const result = await userRespository.save(params)
-      expect(result.data).not.toBeNull()
+    it('should return correct user', async () => {
+      const result = await userRespository.getByEmail(user.email)
 
-      const result2 = await userRespository.save(params)
-      expect(result2.data).toBeNull()
+      expect(result).toStrictEqual(AppResult.success(user))
+    })
+
+    it('should return failed with NotFoundException when user not found', async () => {
+      const result = await userRespository.getByEmail('not-exists')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('user with email not-exists not found'),
+        ),
+      )
     })
   })
 })
