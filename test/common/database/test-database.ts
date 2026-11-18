@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm'
 import { PGliteDriver } from 'typeorm-pglite'
 import { typeOrmConfig } from '../../../src/common/database/config.js'
+import { Global, Module } from '@nestjs/common'
 
 export const createTestDataSource = () => {
   const dataSource = new DataSource({
@@ -14,3 +15,15 @@ export const createTestDataSource = () => {
 
   return dataSource.initialize()
 }
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: DataSource,
+      useFactory: createTestDataSource,
+    },
+  ],
+  exports: [DataSource],
+})
+export class TestDatabaseModule {}

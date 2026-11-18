@@ -1,45 +1,30 @@
 import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { AuthModule } from '../../src/auth/auth.module.js'
-import {
-  LoginParams,
-  LoginUseCase,
-} from '../../src/auth/use-cases/login.use-case.js'
-import { AppResult } from '../../src/common/app-result.js'
-import { UserToken } from '../../src/auth/entities/user-credential.entity.js'
 import { createTestingApp } from '../helper.js'
+import { TestDatabaseModule } from '../common/database/test-database.js'
+import { AppModule } from '../../src/app.module.js'
+import { DatabaseModule } from '../../src/common/database/database.module.js'
 import {
-  AppException,
-  InvalidCredentialException,
-} from '../../src/common/app-exception.js'
+  createUserMock,
+  USER_EMAIL,
+  USER_PASSWORD,
+} from '../common/mock/db-mock-data.js'
 
-// TODO(R-12): migrate test to real e2e (doesn't use any mock)
 describe('Auth', () => {
-  const userToken = new UserToken({
-    accessToken: 'accessToken',
-    refreshToken: 'refreshToken',
-    expiresIn: 10,
-  })
   let app: INestApplication
-  let loginUseCase = {
-    execute: vi.fn().mockResolvedValue(AppResult.success(userToken)),
-  }
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AuthModule],
+      imports: [AppModule],
     })
-      .overrideProvider(LoginUseCase)
-      .useValue(loginUseCase)
+      .overrideModule(DatabaseModule)
+      .useModule(TestDatabaseModule)
       .compile()
+    await createUserMock(moduleRef)
 
     app = createTestingApp(moduleRef)
     await app.init()
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
   })
 
   afterAll(async () => {
@@ -48,17 +33,9 @@ describe('Auth', () => {
 
   describe('/POST login', () => {
     const payload = {
-      email: 'email@email.com',
-      password: 'password',
+      email: USER_EMAIL,
+      password: USER_PASSWORD,
     }
-
-    it('should calls LoginUseCase once', async () => {
-      await request(app.getHttpServer()).post('/auth/login').send(payload)
-
-      expect(loginUseCase.execute).toHaveBeenCalledExactlyOnceWith(
-        new LoginParams(payload),
-      )
-    })
 
     it('should return 422 when request body is invalid', async () => {
       const response = await request(app.getHttpServer())
@@ -86,43 +63,25 @@ describe('Auth', () => {
         .send(payload)
 
       expect(response.statusCode).toBe(200)
-      expect(response.body).toStrictEqual({
-        status: 200,
-        data: {
-          accessToken: userToken.accessToken,
-          refreshToken: userToken.refreshToken,
-          expiresIn: userToken.expiresIn,
-        },
-      })
+      expect(response.body).toMatchObject({ status: 200 })
+      expect(response.body.data).toHaveProperty('accessToken')
+      expect(response.body.data).toHaveProperty('refreshToken')
+      expect(response.body.data).toHaveProperty('expiresIn')
     })
 
-    it('should return 401 when LoginUseCase failed with InvalidCredentialException', async () => {
-      const e = new InvalidCredentialException()
-      loginUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
+    it('should return 401 when provided credentials is invalid', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
-        .send(payload)
+        .send({
+          email: USER_EMAIL,
+          password: 'failed',
+        })
 
       expect(response.statusCode).toBe(401)
       expect(response.body).toStrictEqual({
         status: 401,
-        title: e.title,
-        detail: e.detail,
-      })
-    })
-
-    it('should return failed with correct failure when LoginUseCase failed', async () => {
-      const e = AppException.test()
-      loginUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
-      const response = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(payload)
-
-      expect(response.statusCode).toBe(500)
-      expect(response.body).toStrictEqual({
-        status: 500,
-        title: 'title',
-        detail: 'detail',
+        title: 'Provided credential is invalid',
+        detail: 'Email/password/both is invalid. Please check again',
       })
     })
   })
