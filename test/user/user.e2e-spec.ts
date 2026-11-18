@@ -2,36 +2,32 @@ import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { createTestingApp } from '../helper.js'
+import { AppModule } from '../../src/app.module.js'
+import { DatabaseModule } from '../../src/common/database/database.module.js'
+import { TestDatabaseModule } from '../common/database/test-database.js'
+import {
+  createUserMock,
+  USER_EMAIL,
+  USER_PASSWORD,
+} from '../common/mock/db-mock-data.js'
 import { User } from '../../src/user/entities/user.entity.js'
-import { JWT } from '../../src/auth/utils/jwt.util.js'
-import { UserModule } from '../../src/user/user.module.js'
 
-// TODO(R-12): migrate test to real e2e (doesn't use any mock)
 describe('User', () => {
-  const user = new User({
-    id: 'id',
-    name: 'name',
-    email: 'email@email.com',
-  })
+  let user: User
   let app: INestApplication
-  let jwt = {
-    validate: vi.fn().mockResolvedValue(user),
-  }
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [UserModule],
+      imports: [AppModule],
     })
-      .overrideProvider(JWT)
-      .useValue(jwt)
+      .overrideModule(DatabaseModule)
+      .useModule(TestDatabaseModule)
       .compile()
+
+    user = await createUserMock(moduleRef)
 
     app = createTestingApp(moduleRef)
     await app.init()
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
   })
 
   afterAll(async () => {
@@ -39,6 +35,18 @@ describe('User', () => {
   })
 
   describe('/GET users/me', () => {
+    let accessToken: string
+
+    beforeEach(async () => {
+      const result = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: USER_EMAIL,
+          password: USER_PASSWORD,
+        })
+      accessToken = result.body.data.accessToken
+    })
+
     it('should return 401 when auth header is missing', async () => {
       const response = await request(app.getHttpServer())
         .get('/users/me')
@@ -48,15 +56,14 @@ describe('User', () => {
       expect(response.body).toMatchObject({
         status: 401,
         title: 'Missing Authentication header',
-        detail:
-          'This endpoint is protected, authenticated request is required. Please provide valid Authentication header',
+        detail: 'Please provide valid Authentication header',
       })
     })
 
     it('should return 200 with correct user', async () => {
       const response = await request(app.getHttpServer())
         .get('/users/me')
-        .set('Authentication', 'Bearer token')
+        .set('Authorization', `Bearer ${accessToken}`)
         .send()
 
       expect(response.statusCode).toBe(200)
@@ -65,7 +72,7 @@ describe('User', () => {
         data: {
           id: user.id,
           name: user.name,
-          email: user.name,
+          email: user.email,
         },
       })
     })

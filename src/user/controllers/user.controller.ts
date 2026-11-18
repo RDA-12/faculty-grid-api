@@ -7,6 +7,7 @@ import {
 } from '../../common/app-response.js'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UserOut } from './user.dto.js'
+import { AppResult } from '../../common/app-result.js'
 
 @ApiBearerAuth()
 @ApiTags('User')
@@ -32,6 +33,6 @@ export class UserController {
     this.logger.debug(
       'delegating get current user to AuthenticationModule from nestjs',
     )
-    return UserOut.fromUser(user)
+    return AppResult.success(UserOut.fromUser(user))
   }
 }
