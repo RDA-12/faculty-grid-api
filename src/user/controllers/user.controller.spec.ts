@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing'
 import { User } from '../entities/user.entity.js'
 import { UserController } from './user.controller.js'
 import { UserOut } from './user.dto.js'
+import { AppResult } from '../../common/app-result.js'
 
 describe('UserController', () => {
   const user = new User({
@@ -24,7 +25,7 @@ describe('UserController', () => {
     it('should returns UserOut from provided User', () => {
       const result = userController.getMe(user)
 
-      expect(result).toStrictEqual(userOut)
+      expect(result).toStrictEqual(AppResult.success(userOut))
     })
   })
 })
