@@ -11,11 +11,7 @@ describe('AppResult', () => {
 
     describe('failed', () => {
       it('should have non null exception', () => {
-        let e = new AppException({
-          status: 500,
-          title: '',
-          detail: '',
-        })
+        let e = AppException.test()
         let result = AppResult.failed(e)
 
         expect(result.exception).toBe(e)

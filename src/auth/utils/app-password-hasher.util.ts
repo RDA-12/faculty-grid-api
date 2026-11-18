@@ -1,7 +1,7 @@
 import { PasswordHasher } from '@nestjs/authentication'
 import { Injectable, Logger } from '@nestjs/common'
 import { AppResult } from '../../common/app-result.js'
-import { AppException } from '../../common/app-exception.js'
+import { UnexpectedException } from '../../common/app-exception.js'
 
 /**
  * Handle hashing and verifying password
@@ -24,13 +24,7 @@ export class AppPasswordHasher {
       return AppResult.success(verified)
     } catch (error) {
       this.logger.error(`failed to verify password: ${error as Error}`)
-      return AppResult.failed(
-        new AppException({
-          status: 500,
-          title: 'Failed verifying hashed password',
-          detail: `${error as Error}`,
-        }),
-      )
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 }

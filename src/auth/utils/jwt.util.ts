@@ -7,7 +7,7 @@ import {
   JwtClaims,
   TokenService,
 } from '@nestjs/authentication'
-import { AppException } from '../../common/app-exception.js'
+import { UnexpectedException } from '../../common/app-exception.js'
 import { User } from '../../user/entities/user.entity.js'
 import { GetUserByIdUseCase } from '../../user/use-cases/get-user-by-id.use-case.js'
 
@@ -38,13 +38,7 @@ export class JWT extends JwtBearerProvider<User> {
       return AppResult.success(new UserToken(issuedToken))
     } catch (error) {
       this.logger.error(`failed to issue token: ${error as Error}`)
-      return AppResult.failed(
-        new AppException({
-          status: 500,
-          title: 'Failed issueing new jwt token',
-          detail: `${error as Error}`,
-        }),
-      )
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 

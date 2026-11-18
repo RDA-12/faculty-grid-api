@@ -65,5 +65,13 @@ describe('UserRepository', () => {
       const result2 = await userRespository.save(params)
       expect(result2.data).toBeNull()
     })
+
+    it('should return failed with AlreadyExistException when saving same email', async () => {
+      const result = await userRespository.save(params)
+      expect(result.data).not.toBeNull()
+
+      const result2 = await userRespository.save(params)
+      expect(result2.data).toBeNull()
+    })
   })
 })

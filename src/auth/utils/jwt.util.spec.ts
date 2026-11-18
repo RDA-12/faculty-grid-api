@@ -7,7 +7,10 @@ import { JWT } from './jwt.util.js'
 import { Test } from '@nestjs/testing'
 import { AppResult } from '../../common/app-result.js'
 import { UserToken } from '../entities/user-credential.entity.js'
-import { AppException } from '../../common/app-exception.js'
+import {
+  AppException,
+  UnexpectedException,
+} from '../../common/app-exception.js'
 import { GetUserByIdUseCase } from '../../user/use-cases/get-user-by-id.use-case.js'
 import { User } from '../../user/entities/user.entity.js'
 
@@ -74,13 +77,7 @@ describe('JWT', () => {
       const result = await jwt.issue('userId')
 
       expect(result).toStrictEqual(
-        AppResult.failed(
-          new AppException({
-            status: 500,
-            title: 'Failed issueing new jwt token',
-            detail: 'Error: error',
-          }),
-        ),
+        AppResult.failed(new UnexpectedException('Error: error')),
       )
     })
   })
@@ -101,11 +98,7 @@ describe('JWT', () => {
     })
 
     it('should returns null when GetUserByIdUseCase failed', async () => {
-      const e = new AppException({
-        status: 500,
-        title: '',
-        detail: '',
-      })
+      const e =  AppException.test()
       getUserByIdUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
       const result = await jwt.validate({ sub: user.id })
 

@@ -2,7 +2,7 @@ import { PasswordHasher } from '@nestjs/authentication'
 import { AppPasswordHasher } from './app-password-hasher.util.js'
 import { Test } from '@nestjs/testing'
 import { AppResult } from '../../common/app-result.js'
-import { AppException } from '../../common/app-exception.js'
+import { UnexpectedException } from '../../common/app-exception.js'
 
 describe('AppPasswordHasher', () => {
   let nestPasswordHasher: { verify: ReturnType<typeof vi.fn> }
@@ -42,13 +42,7 @@ describe('AppPasswordHasher', () => {
     const result = await passwordHasher.verify('password', 'encoded')
 
     expect(result).toStrictEqual(
-      AppResult.failed(
-        new AppException({
-          status: 500,
-          title: 'Failed verifying hashed password',
-          detail: 'Error: error',
-        }),
-      ),
+      AppResult.failed(new UnexpectedException('Error: error')),
     )
   })
 })

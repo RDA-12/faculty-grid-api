@@ -9,7 +9,7 @@ import {
 } from '../../common/database/entities/user.entity.js'
 import {
   AlreadyExistsException,
-  AppException,
+  UnexpectedException,
 } from '../../common/app-exception.js'
 
 /**
@@ -44,13 +44,7 @@ export class UserRepository {
           )
         }
       }
-      return AppResult.failed(
-        new AppException({
-          status: 500,
-          title: 'Unexpected error',
-          detail: `${error as Error}`,
-        }),
-      )
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 

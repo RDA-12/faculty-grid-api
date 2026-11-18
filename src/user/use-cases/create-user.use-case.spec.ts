@@ -39,11 +39,7 @@ describe('CreateUserUseCase', () => {
   })
 
   it('should return failed with correct exception when UserRepository.save failed', async () => {
-    const e = new AppException({
-      status: 500,
-      title: '',
-      detail: '',
-    })
+    const e = AppException.test()
     vi.spyOn(userRepository, 'save').mockResolvedValueOnce(AppResult.failed(e))
     const result = await createUserUseCase.execute(params)
 

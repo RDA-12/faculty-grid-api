@@ -38,11 +38,7 @@ describe('GetUserByIdUseCase', () => {
   })
 
   it('should return failed with correct exception when UserRepository.getById failed', async () => {
-    const e = new AppException({
-      status: 500,
-      title: '',
-      detail: '',
-    })
+    const e = AppException.test()
     vi.spyOn(userRepository, 'getById').mockResolvedValue(AppResult.failed(e))
     const result = await getUserByIdUseCase.execute(user.id)
 

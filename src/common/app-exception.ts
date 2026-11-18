@@ -6,7 +6,7 @@ type AppExceptionConstructor = {
   detail: string
 }
 
-export class AppException extends Error {
+export abstract class AppException extends Error {
   constructor({ status, title, detail }: AppExceptionConstructor) {
     super(detail)
     this.status = status
@@ -20,6 +20,11 @@ export class AppException extends Error {
   readonly title: string
   /** human-readable explanation of this exception */
   readonly detail: string
+
+  /** creates new UnexpectedException for testing purposes */
+  static test() {
+    return new UnexpectedException('unexpected')
+  }
 }
 
 export class InvalidCredentialException extends AppException {
@@ -116,6 +121,17 @@ export class AlreadyExistsException extends AppException {
       status: 409,
       title: 'Data already exists',
       detail: message,
+    })
+  }
+}
+
+/** Exception for unexpected error occurred */
+export class UnexpectedException extends AppException {
+  constructor(detail: string) {
+    super({
+      status: 500,
+      title: 'Unexpected error',
+      detail: detail,
     })
   }
 }

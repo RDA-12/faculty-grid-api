@@ -112,11 +112,7 @@ describe('Auth', () => {
     })
 
     it('should return failed with correct failure when LoginUseCase failed', async () => {
-      const e = new AppException({
-        status: 500,
-        title: 'title',
-        detail: 'detail',
-      })
+      const e = AppException.test()
       loginUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
       const response = await request(app.getHttpServer())
         .post('/auth/login')
