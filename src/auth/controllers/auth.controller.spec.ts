@@ -20,6 +20,7 @@ describe('AuthController', () => {
   })
   const userTokenOut = UserTokenOut.fromUserToken(userToken)
   let loginUseCase: LoginUseCase
+  let executeSpy: any
   let authController: AuthController
 
   beforeEach(async () => {
@@ -45,9 +46,9 @@ describe('AuthController', () => {
     }).compile()
 
     loginUseCase = moduleRef.get(LoginUseCase)
-    vi.spyOn(loginUseCase, 'execute').mockResolvedValue(
-      AppResult.success(userToken),
-    )
+    executeSpy = vi
+      .spyOn(loginUseCase, 'execute')
+      .mockResolvedValue(AppResult.success(userToken))
 
     authController = new AuthController(loginUseCase)
   })
@@ -68,7 +69,7 @@ describe('AuthController', () => {
     it('calls LoginUseCase once', async () => {
       await authController.login(loginRequest)
 
-      expect(loginUseCase.execute).toHaveBeenCalledExactlyOnceWith(params)
+      expect(executeSpy).toHaveBeenCalledExactlyOnceWith(params)
     })
 
     it('should return correct user token when LoginUseCase success', async () => {
