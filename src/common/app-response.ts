@@ -138,12 +138,16 @@ export const ApiFailedResponse = ({
       status: status,
       description: description,
       schema: {
-        allOf: [{ $ref: getSchemaPath(FailedResponse) }],
-        properties: {
-          status: {
-            example: status,
+        allOf: [
+          { $ref: getSchemaPath(FailedResponse) },
+          {
+            properties: {
+              status: {
+                example: status,
+              },
+            },
           },
-        },
+        ],
       },
     }),
   )
@@ -161,12 +165,16 @@ export const ApiInvalidRequestResponse = ({
       status: 422,
       description: description,
       schema: {
-        allOf: [{ $ref: getSchemaPath(InvalidRequestReponse) }],
-        properties: {
-          status: {
-            example: 422,
+        allOf: [
+          { $ref: getSchemaPath(InvalidRequestReponse) },
+          {
+            properties: {
+              status: {
+                example: 422,
+              },
+            },
           },
-        },
+        ],
       },
     }),
   )
