@@ -51,7 +51,7 @@ describe('JWT', () => {
       AppResult.failed(
         new AppException({
           status: 500,
-          title: 'Failed issuing new jwt token',
+          title: 'Failed issueing new jwt token',
           detail: 'Error: error',
         }),
       ),

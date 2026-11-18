@@ -28,7 +28,7 @@ export class JWT {
       return AppResult.failed(
         new AppException({
           status: 500,
-          title: 'Failed ussuing new jwt token',
+          title: 'Failed issueing new jwt token',
           detail: `${error as Error}`,
         }),
       )
