@@ -105,3 +105,17 @@ export class InvalidRequestException extends AppException {
     return new InvalidRequestException(effectiveErrors)
   }
 }
+
+/**
+ * Exception for creating/updating data to existing value that
+ * need to be unique
+ */
+export class AlreadyExistsException extends AppException {
+  constructor(message: string) {
+    super({
+      status: 409,
+      title: 'Data already exists',
+      detail: message,
+    })
+  }
+}

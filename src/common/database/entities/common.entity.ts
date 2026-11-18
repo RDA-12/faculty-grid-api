@@ -1,4 +1,6 @@
+import { randomUUIDv7 } from 'node:crypto'
 import {
+  BeforeInsert,
   CreateDateColumn,
   DeleteDateColumn,
   PrimaryColumn,
@@ -6,8 +8,15 @@ import {
 } from 'typeorm'
 
 export abstract class AutoIdTimestamp {
-  @PrimaryColumn({ generated: 'uuid' })
+  @PrimaryColumn()
   id: string
+
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = randomUUIDv7()
+    }
+  }
 
   @CreateDateColumn({
     name: 'created_at',
@@ -26,7 +35,7 @@ export abstract class AutoIdTimestamp {
   @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamptz',
-    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
   })
-  deletedAt: Date
+  deletedAt: Date | null
 }
