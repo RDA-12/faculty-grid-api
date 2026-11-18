@@ -4,6 +4,10 @@ import { LoginDTO, UserTokenOut } from './auth.dto.js'
 import { AppResult } from '../../common/app-result.js'
 import { Public } from '@nestjs/authentication'
 import { ApiTags } from '@nestjs/swagger'
+import {
+  ApiFailedResponse,
+  ApiSuccessResponse,
+} from '../../common/app-response.js'
 
 /**
  * Manage request in and response out for auth path
@@ -17,6 +21,15 @@ export class AuthController {
 
   private readonly logger: Logger
 
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Login success',
+    model: UserTokenOut,
+  })
+  @ApiFailedResponse({
+    status: 401,
+    description: 'Invalid email/password',
+  })
   @Public()
   @Post('login')
   @HttpCode(200)
