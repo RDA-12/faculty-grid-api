@@ -1,13 +1,14 @@
 import { Body, Controller, HttpCode, Logger, Post } from '@nestjs/common'
-import { UserToken } from '../entities/user-credential.entity.js'
 import { LoginParams, LoginUseCase } from '../use-cases/login.use-case.js'
-import { LoginDTO } from './auth.dto.js'
+import { LoginDTO, UserTokenOut } from './auth.dto.js'
 import { AppResult } from '../../common/app-result.js'
 import { Public } from '@nestjs/authentication'
+import { ApiTags } from '@nestjs/swagger'
 
 /**
  * Manage request in and response out for auth path
  */
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly loginUseCase: LoginUseCase) {
@@ -19,13 +20,18 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
-  async login(@Body() loginDTO: LoginDTO): Promise<AppResult<UserToken>> {
+  async login(@Body() loginDTO: LoginDTO): Promise<AppResult<UserTokenOut>> {
     this.logger.debug('delegating login to LoginUseCase')
-    return this.loginUseCase.execute(
+    const result = await this.loginUseCase.execute(
       new LoginParams({
         email: loginDTO.email,
         password: loginDTO.password,
       }),
     )
+    if (result.data) {
+      const data = result.data
+      return AppResult.success(UserTokenOut.fromUserToken(data))
+    }
+    return result
   }
 }

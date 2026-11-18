@@ -3,7 +3,7 @@ import { LoginParams, LoginUseCase } from '../use-cases/login.use-case.js'
 import { AuthController } from './auth.controller.js'
 import { AppResult } from '../../common/app-result.js'
 import { UserToken } from '../entities/user-credential.entity.js'
-import { LoginDTO } from './auth.dto.js'
+import { LoginDTO, UserTokenOut } from './auth.dto.js'
 import { AppException } from '../../common/app-exception.js'
 import { AuthenticationModule } from '@nestjs/authentication'
 import { CredentialRepository } from '../repositories/credential.repository.js'
@@ -18,6 +18,7 @@ describe('AuthController', () => {
     refreshToken: 'refreshToken',
     expiresIn: 10,
   })
+  const userTokenOut = UserTokenOut.fromUserToken(userToken)
   let loginUseCase: LoginUseCase
   let authController: AuthController
 
@@ -52,7 +53,7 @@ describe('AuthController', () => {
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('login', () => {
@@ -73,7 +74,7 @@ describe('AuthController', () => {
     it('should return correct user token when LoginUseCase success', async () => {
       const result = await authController.login(loginRequest)
 
-      expect(result).toStrictEqual(AppResult.success(userToken))
+      expect(result).toStrictEqual(AppResult.success(userTokenOut))
     })
 
     it('should returns failed when LoginUseCase failed', async () => {
