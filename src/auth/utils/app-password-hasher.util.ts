@@ -23,8 +23,8 @@ export class AppPasswordHasher {
       this.logger.debug('password verification success')
       return AppResult.success(verified)
     } catch (error) {
-      this.logger.error(`failed to verify password: ${error}`)
-      return AppResult.failed(new AppException(`${error}`))
+      this.logger.error(`failed to verify password: ${error as Error}`)
+      return AppResult.failed(new AppException(`${error as Error}`))
     }
   }
 }

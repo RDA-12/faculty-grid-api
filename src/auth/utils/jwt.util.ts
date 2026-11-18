@@ -24,8 +24,8 @@ export class JWT {
       this.logger.debug('token issued successfully')
       return AppResult.success(new UserToken(issuedToken))
     } catch (error) {
-      this.logger.error(`failed to issue token: ${error}`)
-      return AppResult.failed(new AppException(`${error}`))
+      this.logger.error(`failed to issue token: ${error as Error}`)
+      return AppResult.failed(new AppException(`${error as Error}`))
     }
   }
 }
