@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PromiseUseCase } from '../../common/base-use-case.js'
 import { User } from '../entities/user.entity.js'
 import { AppResult } from '../../common/app-result.js'
-import { type UserRepository } from '../repositories/user.repository.js'
+import { UserRepository } from '../repositories/user.repository.js'
 
 type CreateUserParamsConstructor = {
   name: string

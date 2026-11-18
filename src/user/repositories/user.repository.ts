@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { AppResult } from '../../common/app-result.js'
 import { User } from '../entities/user.entity.js'
-import { CreateUserParams } from '../use-cases/create-user.use-case.js'
+import type { CreateUserParams } from '../use-cases/create-user.use-case.js'
 
 /**
  * Repository to manage user data
