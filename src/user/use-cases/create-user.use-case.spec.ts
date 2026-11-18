@@ -7,27 +7,32 @@ import { Test } from '@nestjs/testing'
 
 describe('CreateUserUseCase', () => {
   const params = new CreateUserParams({ name: 'name', email: 'email' })
+  const user = new User({
+    id: 'id',
+    name: params.name,
+    email: params.email,
+  })
   let userRepository: UserRepository
   let createUserUseCase: CreateUserUseCase
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [UserRepository],
+      providers: [
+        {
+          provide: UserRepository,
+          useValue: {
+            save: vi.fn().mockResolvedValue(AppResult.success(user)),
+          },
+        },
+        CreateUserUseCase,
+      ],
     }).compile()
 
     userRepository = moduleRef.get(UserRepository)
-    createUserUseCase = new CreateUserUseCase(userRepository)
+    createUserUseCase = moduleRef.get(CreateUserUseCase)
   })
 
   it('should return success with correct user when UserRepository.save success', async () => {
-    const user = new User({
-      id: 'id',
-      name: params.name,
-      email: params.email,
-    })
-    vi.spyOn(userRepository, 'save').mockImplementation(async () =>
-      AppResult.success(user),
-    )
     const result = await createUserUseCase.execute(params)
 
     expect(result).toStrictEqual(AppResult.success(user))
@@ -35,9 +40,7 @@ describe('CreateUserUseCase', () => {
 
   it('should return failed with correct exception when UserRepository.save failed', async () => {
     const e = new AppException('')
-    vi.spyOn(userRepository, 'save').mockImplementation(async () =>
-      AppResult.failed(e),
-    )
+    vi.spyOn(userRepository, 'save').mockResolvedValueOnce(AppResult.failed(e))
     const result = await createUserUseCase.execute(params)
 
     expect(result).toStrictEqual(AppResult.failed(e))

@@ -16,17 +16,22 @@ describe('GetUserByEmailUseCase', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [UserRepository],
+      providers: [
+        {
+          provide: UserRepository,
+          useValue: {
+            getByEmail: vi.fn().mockResolvedValue(AppResult.success(user)),
+          },
+        },
+        GetUserByEmailUseCase,
+      ],
     }).compile()
 
     userRepository = moduleRef.get(UserRepository)
-    getUserByEmailUseCase = new GetUserByEmailUseCase(userRepository)
+    getUserByEmailUseCase = moduleRef.get(GetUserByEmailUseCase)
   })
 
   it('should return correct user when UserRepository.getByEmail success', async () => {
-    vi.spyOn(userRepository, 'getByEmail').mockImplementation(async () =>
-      AppResult.success(user),
-    )
     const result = await getUserByEmailUseCase.execute(user.email)
 
     expect(result).toStrictEqual(AppResult.success(user))
@@ -34,7 +39,7 @@ describe('GetUserByEmailUseCase', () => {
 
   it('should return failed with correct exception when UserRepository.getByEmail failed', async () => {
     const e = new AppException('')
-    vi.spyOn(userRepository, 'getByEmail').mockImplementation(async () =>
+    vi.spyOn(userRepository, 'getByEmail').mockResolvedValue(
       AppResult.failed(e),
     )
     const result = await getUserByEmailUseCase.execute(user.email)
