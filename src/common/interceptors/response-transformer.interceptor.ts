@@ -38,9 +38,13 @@ export class ResponseTransformerIntereceptor implements NestInterceptor {
             return new SuccessResponse(response.statusCode, result.data)
           }
           if (result.exception) {
-            // TODO(RDA12): add status, title, and detail on AppException
-            response.status(500)
-            return new FailedResponse(500, '', '')
+            const exception = result.exception
+            response.status(exception.status)
+            return new FailedResponse(
+              exception.status,
+              exception.title,
+              exception.detail,
+            )
           }
         }
         return result

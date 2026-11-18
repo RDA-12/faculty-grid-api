@@ -81,7 +81,11 @@ describe('Auth', () => {
     })
 
     it('should return failed with correct failure when LoginUseCase failed', async () => {
-      const e = new AppException('')
+      const e = new AppException({
+        status: 500,
+        title: 'title',
+        detail: 'detail',
+      })
       loginUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
       const response = await request(app.getHttpServer())
         .post('/auth/login')
@@ -90,8 +94,8 @@ describe('Auth', () => {
       expect(response.statusCode).toBe(500)
       expect(response.body).toStrictEqual({
         status: 500,
-        title: '',
-        detail: '',
+        title: 'title',
+        detail: 'detail',
       })
     })
   })
