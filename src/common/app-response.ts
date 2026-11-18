@@ -48,6 +48,45 @@ export class FailedResponse<T> extends AppResponse<T> {
   readonly detail: string
 }
 
+class InvalidRequestErrorResponseData {
+  constructor({
+    property,
+    value,
+    constraints,
+  }: Required<InvalidRequestErrorResponseData>) {
+    this.property = property
+    this.value = value
+    this.constraints = constraints
+  }
+
+  /** property name that has error */
+  @ApiProperty({ description: 'property name which its value is invalid' })
+  readonly property: string
+
+  /** current invalid value */
+  @ApiProperty({ description: 'invalid value supplied by client' })
+  readonly value: any
+
+  /** list of constraints violated by current value */
+  @ApiProperty({ description: 'list of constraints violated by the value' })
+  readonly constraints: string[]
+}
+
+export class InvalidRequestReponse<T> extends FailedResponse<T> {
+  constructor(errors: InvalidRequestErrorResponseData[]) {
+    super(
+      422,
+      'Invalid request body',
+      'There are invalid properties provided in the body. See errors for details',
+    )
+    this.errors = errors
+  }
+
+  /** List of errors from the request */
+  @ApiProperty({ type: [InvalidRequestErrorResponseData] })
+  readonly errors: InvalidRequestErrorResponseData[]
+}
+
 type BaseResponseArgs = {
   status: number
   description: string
@@ -103,6 +142,29 @@ export const ApiFailedResponse = ({
         properties: {
           status: {
             example: status,
+          },
+        },
+      },
+    }),
+  )
+}
+
+/** Response decorator for Swagger invalid request body */
+export const ApiInvalidRequestResponse = ({
+  description,
+}: {
+  description: string
+}) => {
+  return applyDecorators(
+    ApiExtraModels(InvalidRequestReponse),
+    ApiResponse({
+      status: 422,
+      description: description,
+      schema: {
+        allOf: [{ $ref: getSchemaPath(InvalidRequestReponse) }],
+        properties: {
+          status: {
+            example: 422,
           },
         },
       },

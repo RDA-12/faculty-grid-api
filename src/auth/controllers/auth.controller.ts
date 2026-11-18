@@ -6,6 +6,7 @@ import { Public } from '@nestjs/authentication'
 import { ApiTags } from '@nestjs/swagger'
 import {
   ApiFailedResponse,
+  ApiInvalidRequestResponse,
   ApiSuccessResponse,
 } from '../../common/app-response.js'
 
@@ -29,6 +30,9 @@ export class AuthController {
   @ApiFailedResponse({
     status: 401,
     description: 'Invalid email/password',
+  })
+  @ApiInvalidRequestResponse({
+    description: 'There are invalid properties within the request body',
   })
   @Public()
   @Post('login')

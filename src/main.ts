@@ -1,19 +1,25 @@
-import { NestFactory } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module.js'
 import { ValidationPipe } from '@nestjs/common'
 import { ResponseTransformerIntereceptor } from './common/interceptors/response-transformer.interceptor.js'
 import { DocumentBuilder, getSchemaPath, SwaggerModule } from '@nestjs/swagger'
 import { FailedResponse, SuccessResponse } from './common/app-response.js'
+import { InvalidRequestException } from './common/app-exception.js'
+import { InvalidRequestExceptionFilter } from './common/exception-filter/invalid-request.exception-filter.js'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.useGlobalPipes(
     new ValidationPipe({
       errorHttpStatusCode: 422,
-      errorFormat: 'grouped',
+      exceptionFactory: (errors) =>
+        InvalidRequestException.fromValidationPipe(errors),
     }),
   )
   app.useGlobalInterceptors(new ResponseTransformerIntereceptor())
+  app.useGlobalFilters(
+    new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
+  )
 
   const config = new DocumentBuilder()
     .addGlobalResponse({

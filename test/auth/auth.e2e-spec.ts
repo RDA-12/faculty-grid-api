@@ -65,6 +65,18 @@ describe('Auth', () => {
         .send({ email: 'lol', password: 'password' })
 
       expect(response.statusCode).toBe(422)
+      expect(response.body).toMatchObject({
+        status: 422,
+        title: 'Invalid request body',
+        detail:
+          'There are invalid properties provided in the body. See errors for details',
+        errors: [
+          {
+            property: 'email',
+            value: 'lol',
+          },
+        ],
+      })
     })
 
     it('should return 200 with token when LoginUseCase success', async () => {
