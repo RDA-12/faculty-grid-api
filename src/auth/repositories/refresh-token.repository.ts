@@ -4,7 +4,7 @@ import {
   RefreshTokenStore,
 } from '@nestjs/authentication'
 import { Injectable, Logger } from '@nestjs/common'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, IsNull, Repository } from 'typeorm'
 import { RefreshTokenDBEntity } from '../../common/database/entities/refresh-token.entity.js'
 
 /** Repository to manage refresh token data */
@@ -69,8 +69,12 @@ export class RefreshTokenRepository implements RefreshTokenStore {
     this.logger.debug('refresh token saved')
   }
 
-  markRefreshTokenUsed(id: string, at: Date): Promise<boolean> {
-    throw new Error('Method not implemented.')
+  async markRefreshTokenUsed(id: string, at: Date): Promise<boolean> {
+    const result = await this.repository.update(
+      { id: id, usedAt: IsNull() },
+      { usedAt: at },
+    )
+    return (result.affected ?? 0) === 1
   }
 
   revokeRefreshTokenFamily(familyId: string): Promise<void> {

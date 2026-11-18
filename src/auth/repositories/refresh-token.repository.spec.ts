@@ -111,4 +111,48 @@ describe('RefreshTokenRepository', () => {
       expect(row!.claims).toStrictEqual(record.claims)
     })
   })
+
+  describe('markRefreshTokenUsed', () => {
+    let expected: RefreshTokenRecord
+
+    beforeEach(async () => {
+      const insertDb = new RefreshTokenDBEntity()
+      insertDb.id = 'id'
+      insertDb.familyId = 'familyId'
+      insertDb.userId = 'userId'
+      insertDb.createdAt = new Date()
+      insertDb.expiresAt = new Date()
+      insertDb.familyExpiresAt = new Date()
+      insertDb.claims = { id: 'id' }
+      const dbData = await dataSource.manager.save(insertDb)
+      expected = {
+        id: dbData.id,
+        familyId: dbData.familyId,
+        userId: dbData.userId,
+        createdAt: dbData.createdAt,
+        expiresAt: dbData.expiresAt,
+        familyExpiresAt: dbData.familyExpiresAt,
+        usedAt: dbData.usedAt ?? undefined,
+        claims: dbData.claims ?? undefined,
+      }
+    })
+
+    it('should return true when only 1 row affected', async () => {
+      const result = await refreshTokenRepository.markRefreshTokenUsed(
+        expected.id,
+        new Date(),
+      )
+
+      expect(result).toBeTruthy()
+    })
+
+    it('should return false when 0 row affected', async () => {
+      const result = await refreshTokenRepository.markRefreshTokenUsed(
+        'not-exists',
+        new Date(),
+      )
+
+      expect(result).toBeFalsy()
+    })
+  })
 })
