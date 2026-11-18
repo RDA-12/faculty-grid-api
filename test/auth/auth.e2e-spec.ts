@@ -14,6 +14,7 @@ import {
   InvalidCredentialException,
 } from '../../src/common/app-exception.js'
 
+// TODO(R-12): migrate test to real e2e (doesn't use any mock)
 describe('Auth', () => {
   const userToken = new UserToken({
     accessToken: 'accessToken',
