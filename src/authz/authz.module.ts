@@ -4,5 +4,6 @@ import { AssignRoleUseCase } from './use-cases/assign-role.use-case.js'
 
 @Module({
   providers: [UserRoleRepository, AssignRoleUseCase],
+  exports: [AssignRoleUseCase],
 })
 export class AuthzModule {}

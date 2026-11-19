@@ -10,6 +10,7 @@ import { RegisterAdminUseCase } from './use-cases/register-admin.user-case.js'
 import { ConfigService } from '@nestjs/config'
 import { SecretConfig } from '../common/config.js'
 import { RefreshTokenRepository } from './repositories/refresh-token.repository.js'
+import { AuthzModule } from '../authz/authz.module.js'
 
 /**
  * Handle user authentication
@@ -36,6 +37,7 @@ import { RefreshTokenRepository } from './repositories/refresh-token.repository.
       inject: [ConfigService],
     }),
     UserModule,
+    AuthzModule,
   ],
   controllers: [AuthController],
   providers: [

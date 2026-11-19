@@ -13,6 +13,11 @@ import {
   CreateUserUseCase,
 } from '../../user/use-cases/create-user.use-case.js'
 import { AppException } from '../../common/app-exception.js'
+import { Role, UserRoles } from '../../authz/entities/role.entity.js'
+import {
+  AssignRoleParams,
+  AssignRoleUseCase,
+} from '../../authz/use-cases/assign-role.use-case.js'
 
 describe('RegisterAdminUseCase', () => {
   const params = new RegisterAdminParams({
@@ -29,6 +34,10 @@ describe('RegisterAdminUseCase', () => {
     userId: user.id,
     hashedPassword: 'hashed',
   })
+  const userRoles = new UserRoles({
+    userId: user.id,
+    roles: [Role.admin],
+  })
   let credentialRepository = {
     save: vi.fn().mockResolvedValue(AppResult.success(creds)),
   }
@@ -37,6 +46,9 @@ describe('RegisterAdminUseCase', () => {
   }
   let createUserUseCase = {
     execute: vi.fn().mockResolvedValue(AppResult.success(user)),
+  }
+  let assignRoleUseCase = {
+    execute: vi.fn().mockResolvedValue(AppResult.success(userRoles)),
   }
   let registerAdminUseCase: RegisterAdminUseCase
 
@@ -54,6 +66,10 @@ describe('RegisterAdminUseCase', () => {
         {
           provide: CreateUserUseCase,
           useValue: createUserUseCase,
+        },
+        {
+          provide: AssignRoleUseCase,
+          useValue: assignRoleUseCase,
         },
         RegisterAdminUseCase,
       ],
@@ -77,6 +93,12 @@ describe('RegisterAdminUseCase', () => {
       user.id,
       creds.hashedPassword,
     )
+    expect(assignRoleUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+      new AssignRoleParams({
+        userId: user.id,
+        role: Role.admin,
+      }),
+    )
   })
 
   it('should return correct user', async () => {
@@ -87,6 +109,20 @@ describe('RegisterAdminUseCase', () => {
 
   it('should return failed when CreateUserUseCase is failed', async () => {
     createUserUseCase.execute.mockResolvedValueOnce(
+      AppResult.failed(AppException.test()),
+    )
+
+    const result = await registerAdminUseCase.execute(params)
+
+    expect(result).toStrictEqual(AppResult.failed(AppException.test()))
+
+    expect(assignRoleUseCase.execute).not.toHaveBeenCalled()
+    expect(passwordHasher.hash).not.toHaveBeenCalled()
+    expect(credentialRepository.save).not.toHaveBeenCalled()
+  })
+
+  it('should return failed when AssignRoleUseCase is failed', async () => {
+    assignRoleUseCase.execute.mockResolvedValueOnce(
       AppResult.failed(AppException.test()),
     )
 

@@ -8,6 +8,11 @@ import {
 } from '../../user/use-cases/create-user.use-case.js'
 import { AppResult } from '../../common/app-result.js'
 import { AppPasswordHasher } from '../utils/app-password-hasher.util.js'
+import {
+  AssignRoleParams,
+  AssignRoleUseCase,
+} from '../../authz/use-cases/assign-role.use-case.js'
+import { Role } from '../../authz/entities/role.entity.js'
 
 export class RegisterAdminParams {
   constructor({ name, email, password }: Required<RegisterAdminParams>) {
@@ -33,6 +38,7 @@ export class RegisterAdminUseCase implements PromiseUseCase<
     private readonly credentialRepository: CredentialRepository,
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly passwordHashed: AppPasswordHasher,
+    private readonly assignRoleUseCase: AssignRoleUseCase,
   ) {
     this.logger = new Logger('RegisterAdminUseCase')
   }
@@ -52,6 +58,18 @@ export class RegisterAdminUseCase implements PromiseUseCase<
       return AppResult.failed(userCreateResult.exception)
     }
     const user = userCreateResult.data!
+
+    this.logger.debug(
+      'delegating assign user with admin role to AssignRoleUseCase',
+    )
+    const assignResult = await this.assignRoleUseCase.execute(
+      new AssignRoleParams({ userId: user.id, role: Role.admin }),
+    )
+    if (assignResult.exception) {
+      this.logger.debug('failed to assign admin role')
+      return AppResult.failed(assignResult.exception)
+    }
+    this.logger.debug('user assigned with admin role')
 
     this.logger.debug('delegating hashing password to AppPasswordHasher')
     const hashedResult = await this.passwordHashed.hash(params.password)
