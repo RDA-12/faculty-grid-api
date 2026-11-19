@@ -8,6 +8,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UserOut } from './user.dto.js'
 import { AppResult } from '../../common/app-result.js'
+import { Can } from '@nestjs/authorization'
 
 @ApiBearerAuth()
 @ApiTags('User')
@@ -28,6 +29,7 @@ export class UserController {
     status: 401,
     description: 'Token is expired/revoked/invalid',
   })
+  @Can.Anyone()
   @Get('me')
   getMe(@CurrentUser() user: User) {
     this.logger.debug(

@@ -69,4 +69,32 @@ describe('UserRoleRepository', () => {
       )
     })
   })
+
+  describe('getByUserId', () => {
+    beforeEach(async () => {
+      await dataSource.manager.save(UserRoleDBEntity, {
+        id: 'whatever',
+        userId: userDb.id,
+        role: Role.admin,
+      })
+    })
+
+    it('should return correct user roles', async () => {
+      const result = await userRoleRepository.getByUserId(userDb.id)
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new UserRoles({ userId: userDb.id, roles: [Role.admin] }),
+        ),
+      )
+    })
+
+    it('should return empty roles for non-existing user', async () => {
+      const result = await userRoleRepository.getByUserId('not-exists')
+
+      expect(result).toStrictEqual(
+        AppResult.success(new UserRoles({ userId: 'not-exists', roles: [] })),
+      )
+    })
+  })
 })

@@ -1,4 +1,4 @@
-type UserContructor = {
+export type UserContructor = {
   id: string
   name: string
   email: string

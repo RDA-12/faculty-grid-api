@@ -11,7 +11,8 @@ import {
   ApiInvalidRequestResponse,
   ApiSuccessResponse,
 } from '../../common/app-response.js'
-import { ApiBearerAuth } from '@nestjs/swagger'
+import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
+import { FacultyPolicy } from '../policies/faculty.policy.js'
 
 @Controller('faculties')
 export class FacultyController {
@@ -29,7 +30,7 @@ export class FacultyController {
   @ApiInvalidRequestResponse({
     description: 'Invalid data on the body',
   })
-  @ApiBearerAuth()
+  @RequiredPermisson(FacultyPolicy, 'create')
   @Post()
   async creatFaculty(
     @CurrentUser() user: User,

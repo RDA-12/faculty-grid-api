@@ -64,4 +64,10 @@ export class UserRoleRepository {
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
+
+  async getByUserId(userId: string): Promise<AppResult<UserRoles>> {
+    const rows = await this.repository.findBy({ userId: userId })
+    const roles = rows.map((it) => it.role)
+    return AppResult.success(new UserRoles({ userId: userId, roles: roles }))
+  }
 }
