@@ -7,6 +7,8 @@ import { AppPasswordHasher } from './utils/app-password-hasher.util.js'
 import { JWT } from './utils/jwt.util.js'
 import { AuthController } from './controllers/auth.controller.js'
 import { RegisterAdminUseCase } from './use-cases/register-admin.user-case.js'
+import { ConfigService } from '@nestjs/config'
+import { SecretConfig } from '../common/config.js'
 
 /**
  * Handle user authentication
@@ -17,15 +19,20 @@ import { RegisterAdminUseCase } from './use-cases/register-admin.user-case.js'
  */
 @Module({
   imports: [
-    AuthenticationModule.forRoot({
-      accessToken: {
-        key:
-          process.env.JWT_SECRET ??
-          '3cc4238a01a83902c646ac6e4c288971dcaffc491d7477b8843504838e76d6ab',
-        issuer: 'http://localhost:8000',
-        audience: 'web',
-        ttl: '15m',
+    AuthenticationModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<SecretConfig>('secret')!
+
+        return {
+          accessToken: {
+            key: secret.jwt,
+            issuer: 'http://localhost:8000',
+            audience: 'web',
+            ttl: '15m',
+          },
+        }
       },
+      inject: [ConfigService],
     }),
     UserModule,
   ],
