@@ -9,6 +9,7 @@ import { AuthController } from './controllers/auth.controller.js'
 import { RegisterAdminUseCase } from './use-cases/register-admin.user-case.js'
 import { ConfigService } from '@nestjs/config'
 import { SecretConfig } from '../common/config.js'
+import { RefreshTokenRepository } from './repositories/refresh-token.repository.js'
 
 /**
  * Handle user authentication
@@ -38,6 +39,7 @@ import { SecretConfig } from '../common/config.js'
   ],
   controllers: [AuthController],
   providers: [
+    RefreshTokenRepository,
     CredentialRepository,
     AppPasswordHasher,
     JWT,
