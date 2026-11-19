@@ -85,4 +85,66 @@ describe('Auth', () => {
       })
     })
   })
+
+  describe('/POST register-admin', () => {
+    const payload = {
+      name: 'admin',
+      email: 'admin@email.com',
+      password: 'password1234',
+    }
+
+    it('should return 422 when request body is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register-admin')
+        .send({ email: 'lol', password: 'password' })
+
+      expect(response.statusCode).toBe(422)
+      expect(response.body).toMatchObject({
+        status: 422,
+        title: 'Invalid request body',
+        detail:
+          'There are invalid properties provided in the body. See errors for details',
+        errors: [
+          {
+            property: 'name',
+          },
+          {
+            property: 'email',
+            value: 'lol',
+          },
+        ],
+      })
+    })
+
+    it('should return 201 with user when success', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register-admin')
+        .send(payload)
+
+      expect(response.statusCode).toBe(201)
+      expect(response.body).toMatchObject({ status: 201 })
+      expect(response.body.data).toHaveProperty('id')
+      expect(response.body.data).toMatchObject({
+        name: payload.name,
+        email: payload.email,
+      })
+    })
+
+    it('should return 409 when provided email already exists', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register-admin')
+        .send({
+          name: 'admin',
+          email: USER_EMAIL,
+          password: 'failed',
+        })
+
+      expect(response.statusCode).toBe(409)
+      expect(response.body).toStrictEqual({
+        status: 409,
+        title: 'Data already exists',
+        detail: `user with email ${USER_EMAIL} already exists`,
+      })
+    })
+  })
 })

@@ -27,4 +27,18 @@ export class AppPasswordHasher {
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
+
+  async hash(password: string): Promise<AppResult<string>> {
+    try {
+      this.logger.debug(
+        'delegate hashing password to PasswordHasher from nestjs',
+      )
+      const hashed = await this.nestPasswordHasher.hash(password)
+      this.logger.debug('password hashed')
+      return AppResult.success(hashed)
+    } catch (error) {
+      this.logger.error(`failed to hash password: ${error as Error}`)
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
+    }
+  }
 }

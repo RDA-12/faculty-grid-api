@@ -6,6 +6,7 @@ import { CredentialRepository } from './repositories/credential.repository.js'
 import { AppPasswordHasher } from './utils/app-password-hasher.util.js'
 import { JWT } from './utils/jwt.util.js'
 import { AuthController } from './controllers/auth.controller.js'
+import { RegisterAdminUseCase } from './use-cases/register-admin.user-case.js'
 
 /**
  * Handle user authentication
@@ -29,6 +30,12 @@ import { AuthController } from './controllers/auth.controller.js'
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [CredentialRepository, AppPasswordHasher, JWT, LoginUseCase],
+  providers: [
+    CredentialRepository,
+    AppPasswordHasher,
+    JWT,
+    LoginUseCase,
+    RegisterAdminUseCase,
+  ],
 })
 export class AuthModule {}

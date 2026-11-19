@@ -70,4 +70,32 @@ describe('CredentialRepository', () => {
       )
     })
   })
+
+  describe('save', () => {
+    it('should return and save correct user credential', async () => {
+      const result = await credentialRepository.save(userDb.id, 'hashed')
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new UserCredential({ userId: userDb.id, hashedPassword: 'hashed' }),
+        ),
+      )
+
+      const row = await dataSource.manager.findOneBy(UserCredentialDBEntity, {
+        userId: userDb.id,
+      })
+      expect(row?.userId).toBe(userDb.id)
+      expect(row?.hashedPassword).toBe('hashed')
+    })
+
+    it('should return failed with NotFoundException when user is not found', async () => {
+      const result = await credentialRepository.save('not-found', 'hashed')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException(`user with ID not-found is not found`),
+        ),
+      )
+    })
+  })
 })

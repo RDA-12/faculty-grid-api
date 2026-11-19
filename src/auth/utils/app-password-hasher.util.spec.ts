@@ -5,7 +5,10 @@ import { AppResult } from '../../common/app-result.js'
 import { UnexpectedException } from '../../common/app-exception.js'
 
 describe('AppPasswordHasher', () => {
-  let nestPasswordHasher: { verify: ReturnType<typeof vi.fn> }
+  let nestPasswordHasher: {
+    verify: ReturnType<typeof vi.fn>
+    hash: ReturnType<typeof vi.fn>
+  }
   let passwordHasher: AppPasswordHasher
 
   beforeEach(async () => {
@@ -15,6 +18,7 @@ describe('AppPasswordHasher', () => {
           provide: PasswordHasher,
           useValue: {
             verify: vi.fn().mockResolvedValue(false),
+            hash: vi.fn().mockResolvedValue('hashed'),
           },
         },
         AppPasswordHasher,
@@ -41,6 +45,28 @@ describe('AppPasswordHasher', () => {
         new Error('error'),
       )
       const result = await passwordHasher.verify('password', 'encoded')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(new UnexpectedException('Error: error')),
+      )
+    })
+  })
+
+  describe('hash', () => {
+    it('should returns success with correct hashed when PasswordHasher.hash success', async () => {
+      const result = await passwordHasher.hash('password')
+
+      expect(result).toStrictEqual(AppResult.success('hashed'))
+      expect(nestPasswordHasher.hash).toHaveBeenCalledExactlyOnceWith(
+        'password',
+      )
+    })
+
+    it('should returns failed when PasswordHasher.hash failed', async () => {
+      vi.spyOn(nestPasswordHasher, 'hash').mockRejectedValueOnce(
+        new Error('error'),
+      )
+      const result = await passwordHasher.hash('password')
 
       expect(result).toStrictEqual(
         AppResult.failed(new UnexpectedException('Error: error')),

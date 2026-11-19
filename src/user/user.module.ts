@@ -18,6 +18,6 @@ import { UserController } from './controllers/user.controller.js'
     GetUserByEmailUseCase,
     GetUserByIdUseCase,
   ],
-  exports: [GetUserByEmailUseCase, GetUserByIdUseCase],
+  exports: [GetUserByEmailUseCase, GetUserByIdUseCase, CreateUserUseCase],
 })
 export class UserModule {}
