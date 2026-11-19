@@ -1,11 +1,16 @@
 import { randomUUIDv7 } from 'node:crypto'
 import {
   BeforeInsert,
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
+  JoinColumn,
+  ManyToOne,
   PrimaryColumn,
+  type Relation,
   UpdateDateColumn,
 } from 'typeorm'
+import { UserDBEntity } from './user.entity.js'
 
 export abstract class AutoIdTimestamp {
   @PrimaryColumn()
@@ -38,4 +43,13 @@ export abstract class AutoIdTimestamp {
     nullable: true,
   })
   deletedAt: Date | null
+}
+
+export abstract class AutoIdTimestampCreatedBy extends AutoIdTimestamp {
+  @ManyToOne('users')
+  @JoinColumn({ name: 'created_by' })
+  createdUser: Relation<UserDBEntity>
+
+  @Column({ name: 'created_by' })
+  createdBy: string
 }
