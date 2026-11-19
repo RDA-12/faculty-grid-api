@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config'
 import { SecretConfig } from '../common/config.js'
 import { RefreshTokenRepository } from './repositories/refresh-token.repository.js'
 import { AuthzModule } from '../authz/authz.module.js'
+import { RefreshAccessTokenUseCase } from './use-cases/refresh-access-token.use-case.js'
 
 /**
  * Handle user authentication
@@ -47,6 +48,7 @@ import { AuthzModule } from '../authz/authz.module.js'
     JWT,
     LoginUseCase,
     RegisterAdminUseCase,
+    RefreshAccessTokenUseCase,
   ],
 })
 export class AuthModule {}

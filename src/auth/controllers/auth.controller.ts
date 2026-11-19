@@ -3,6 +3,7 @@ import { LoginParams, LoginUseCase } from '../use-cases/login.use-case.js'
 import {
   AuthUserOut,
   LoginDTO,
+  RefreshTokenDTO,
   RegisterAdminDTO,
   UserTokenOut,
 } from './auth.dto.js'
@@ -19,6 +20,7 @@ import {
   RegisterAdminUseCase,
 } from '../use-cases/register-admin.user-case.js'
 import { ApiKeyHeader } from '../../common/decorators/api-key-header.decorator.js'
+import { RefreshAccessTokenUseCase } from '../use-cases/refresh-access-token.use-case.js'
 
 /**
  * Manage request in and response out for auth path
@@ -29,6 +31,7 @@ export class AuthController {
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly registerAdminUseCase: RegisterAdminUseCase,
+    private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase,
   ) {
     this.logger = new Logger('AuthController')
   }
@@ -96,5 +99,37 @@ export class AuthController {
       return AppResult.success(AuthUserOut.fromUser(data))
     }
     return AppResult.failed(result.exception!)
+  }
+
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Access token refreshed successfully',
+    model: UserTokenOut,
+  })
+  @ApiFailedResponse({
+    status: 401,
+    description: 'Invalid refresh token',
+  })
+  @ApiInvalidRequestResponse({
+    description: 'There are invalid properties within the request body',
+  })
+  @Public()
+  @Post('refresh')
+  @HttpCode(200)
+  async refreshAccessToken(
+    @Body() body: RefreshTokenDTO,
+  ): Promise<AppResult<UserTokenOut>> {
+    this.logger.debug(
+      'delegating access token refreshment to RefreshAccessTokenUseCase',
+    )
+    const result = await this.refreshAccessTokenUseCase.execute(
+      body.refreshToken,
+    )
+    if (result.exception) {
+      this.logger.debug('failed to refresh access token')
+      return AppResult.failed(result.exception)
+    }
+    this.logger.debug('access token refreshed')
+    return AppResult.success(UserTokenOut.fromUserToken(result.data!))
   }
 }

@@ -6,6 +6,7 @@ import { UserToken } from '../entities/user-credential.entity.js'
 import {
   AuthUserOut,
   LoginDTO,
+  RefreshTokenDTO,
   RegisterAdminDTO,
   UserTokenOut,
 } from './auth.dto.js'
@@ -16,6 +17,7 @@ import {
 } from '../use-cases/register-admin.user-case.js'
 import { User } from '../../user/entities/user.entity.js'
 import { ConfigService } from '@nestjs/config'
+import { RefreshAccessTokenUseCase } from '../use-cases/refresh-access-token.use-case.js'
 
 describe('AuthController', () => {
   const userToken = new UserToken({
@@ -31,6 +33,7 @@ describe('AuthController', () => {
   const userTokenOut = UserTokenOut.fromUserToken(userToken)
   let loginUseCase: { execute: ReturnType<typeof vi.fn> }
   let registerAdminUseCase: { execute: ReturnType<typeof vi.fn> }
+  let refreshAccessTokenUseCase: { execute: ReturnType<typeof vi.fn> }
   let authController: AuthController
 
   beforeAll(async () => {
@@ -50,6 +53,12 @@ describe('AuthController', () => {
           },
         },
         {
+          provide: RefreshAccessTokenUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(userToken)),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {},
         },
@@ -58,6 +67,7 @@ describe('AuthController', () => {
 
     loginUseCase = moduleRef.get(LoginUseCase)
     registerAdminUseCase = moduleRef.get(RegisterAdminUseCase)
+    refreshAccessTokenUseCase = moduleRef.get(RefreshAccessTokenUseCase)
 
     authController = moduleRef.get(AuthController)
   })
@@ -138,6 +148,40 @@ describe('AuthController', () => {
       const result = await authController.registerAdmin(
         'key',
         registerAdminRequest,
+      )
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('refreshAccessToken', () => {
+    const refreshAccessTokenRequest = new RefreshTokenDTO('refresh')
+    const params = refreshAccessTokenRequest.refreshToken
+
+    it('calls RefreshAccessTokenUseCase once', async () => {
+      await authController.refreshAccessToken(refreshAccessTokenRequest)
+
+      expect(refreshAccessTokenUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        params,
+      )
+    })
+
+    it('should return correct user token when RefreshAccessTokenUseCase success', async () => {
+      const result = await authController.refreshAccessToken(
+        refreshAccessTokenRequest,
+      )
+
+      expect(result).toStrictEqual(AppResult.success(userTokenOut))
+    })
+
+    it('should returns failed when RefreshAccessTokenUseCase failed', async () => {
+      const e = AppException.test()
+      vi.spyOn(refreshAccessTokenUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await authController.refreshAccessToken(
+        refreshAccessTokenRequest,
       )
 
       expect(result).toStrictEqual(AppResult.failed(e))

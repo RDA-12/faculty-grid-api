@@ -76,3 +76,12 @@ export class AuthUserOut {
   @ApiProperty()
   readonly email: string
 }
+
+export class RefreshTokenDTO {
+  constructor(refreshToken: string) {
+    this.refreshToken = refreshToken
+  }
+
+  @IsString()
+  readonly refreshToken: string
+}

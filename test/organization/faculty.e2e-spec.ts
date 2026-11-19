@@ -32,7 +32,7 @@ describe('Faculty', () => {
     app = createTestingApp(moduleRef)
     await app.init()
 
-    accessToken = await getAccessToken(app)
+    accessToken = (await getAccessToken(app)).accessToken
   })
 
   afterAll(async () => {

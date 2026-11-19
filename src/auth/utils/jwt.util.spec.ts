@@ -1,6 +1,7 @@
 import {
   AuthenticationRegistry,
   IssuedTokens,
+  RefreshTokenError,
   TokenService,
 } from '@nestjs/authentication'
 import { JWT } from './jwt.util.js'
@@ -9,6 +10,7 @@ import { AppResult } from '../../common/app-result.js'
 import { UserToken } from '../entities/user-credential.entity.js'
 import {
   AppException,
+  InvalidRefreshTokenException,
   UnexpectedException,
 } from '../../common/app-exception.js'
 import { GetUserByIdUseCase } from '../../user/use-cases/get-user-by-id.use-case.js'
@@ -22,7 +24,10 @@ describe('JWT', () => {
   }
   const userToken = new UserToken(issuedToken)
   const user = new User({ id: 'id', name: 'name', email: 'email' })
-  let nestTokenService: { issue: ReturnType<typeof vi.fn> }
+  let nestTokenService: {
+    issue: ReturnType<typeof vi.fn>
+    refresh: ReturnType<typeof vi.fn>
+  }
   let getUserByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let jwt: JWT
 
@@ -33,6 +38,7 @@ describe('JWT', () => {
           provide: TokenService,
           useValue: {
             issue: vi.fn().mockResolvedValue(issuedToken),
+            refresh: vi.fn().mockResolvedValue(issuedToken),
           },
         },
         {
@@ -98,11 +104,44 @@ describe('JWT', () => {
     })
 
     it('should returns null when GetUserByIdUseCase failed', async () => {
-      const e =  AppException.test()
+      const e = AppException.test()
       getUserByIdUseCase.execute.mockResolvedValueOnce(AppResult.failed(e))
       const result = await jwt.validate({ sub: user.id })
 
       expect(result).toBeNull()
+    })
+  })
+
+  describe('refresh', () => {
+    it('should returns success with correct token when TokenService.refresh success', async () => {
+      const result = await jwt.refresh(userToken.refreshToken)
+
+      expect(result).toStrictEqual(AppResult.success(userToken))
+      expect(nestTokenService.refresh).toHaveBeenCalledExactlyOnceWith(
+        userToken.refreshToken,
+      )
+    })
+
+    it('should returns failed with InvalidRefreshTokenException when TokenService.refresh failed with RefreshTokenError', async () => {
+      nestTokenService.refresh.mockRejectedValueOnce(
+        new RefreshTokenError('invalid'),
+      )
+      const result = await jwt.refresh(userToken.refreshToken)
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new InvalidRefreshTokenException('Refresh token invalid'),
+        ),
+      )
+    })
+
+    it('should returns failed when TokenService.refresh failed', async () => {
+      nestTokenService.refresh.mockRejectedValueOnce(new Error('error'))
+      const result = await jwt.refresh(userToken.refreshToken)
+
+      expect(result).toStrictEqual(
+        AppResult.failed(new UnexpectedException('Error: error')),
+      )
     })
   })
 })

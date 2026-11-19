@@ -7,6 +7,7 @@ import { InvalidRequestExceptionFilter } from '../src/common/exception-filter/in
 import { HttpAdapterHost } from '@nestjs/core'
 import { UnauthorizedExceptionFilter } from '../src/common/exception-filter/unauthorized.exception-filter.js'
 import { USER_EMAIL, USER_PASSWORD } from './common/mock/db-mock-data.js'
+import { UserToken } from '../src/auth/entities/user-credential.entity.js'
 
 export function createTestingApp(moduleRef: TestingModule): INestApplication {
   const app = moduleRef.createNestApplication()
@@ -28,13 +29,20 @@ export function createTestingApp(moduleRef: TestingModule): INestApplication {
 /**
  * Login user with USER_EMAIL and USER_PASSWORD from db-mock-data and return its accessToken
  */
-export async function getAccessToken(app: INestApplication) {
+export async function getAccessToken(
+  app: INestApplication,
+): Promise<UserToken> {
   const response = await request(app.getHttpServer()).post('/auth/login').send({
     email: USER_EMAIL,
     password: USER_PASSWORD,
   })
 
-  return response.body.data.accessToken as string
+  const data = response.body.data
+  return new UserToken({
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    expiresIn: 0,
+  })
 }
 
 export function excpectResponseMissingAuth(response: Response) {

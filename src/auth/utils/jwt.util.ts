@@ -5,9 +5,13 @@ import {
   AuthenticationRegistry,
   JwtBearerProvider,
   JwtClaims,
+  RefreshTokenError,
   TokenService,
 } from '@nestjs/authentication'
-import { UnexpectedException } from '../../common/app-exception.js'
+import {
+  InvalidRefreshTokenException,
+  UnexpectedException,
+} from '../../common/app-exception.js'
 import { User } from '../../user/entities/user.entity.js'
 import { GetUserByIdUseCase } from '../../user/use-cases/get-user-by-id.use-case.js'
 
@@ -27,6 +31,24 @@ export class JWT extends JwtBearerProvider<User> {
   }
 
   private readonly logger: Logger
+
+  async refresh(refreshToken: string): Promise<AppResult<UserToken>> {
+    try {
+      this.logger.debug(
+        'delegate refreshing access token to TokenService from nestjs',
+      )
+      const newToken = await this.nestTokenService.refresh(refreshToken)
+      this.logger.debug('access token refreshed')
+      return AppResult.success(new UserToken(newToken))
+    } catch (error) {
+      if (error instanceof RefreshTokenError) {
+        this.logger.error(`refresh token is invalid: ${error as Error}`)
+        return AppResult.failed(new InvalidRefreshTokenException(error.message))
+      }
+      this.logger.error(`failed to refresh access token: ${error as Error}`)
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
+    }
+  }
 
   async issue(userId: string): Promise<AppResult<UserToken>> {
     try {

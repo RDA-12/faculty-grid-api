@@ -146,3 +146,17 @@ export class NotFoundException extends AppException {
     })
   }
 }
+
+/**
+ * Exception when client trying to refresh their token with
+ * invalid refresh token
+ */
+export class InvalidRefreshTokenException extends AppException {
+  constructor(detail: string) {
+    super({
+      status: 401,
+      title: 'Refresh token is invalid',
+      detail: detail,
+    })
+  }
+}

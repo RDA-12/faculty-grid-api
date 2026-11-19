@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { createTestingApp } from '../helper.js'
+import { createTestingApp, getAccessToken } from '../helper.js'
 import { TestDatabaseModule } from '../common/database/test-database.js'
 import { AppModule } from '../../src/app.module.js'
 import { DatabaseModule } from '../../src/common/database/database.module.js'
@@ -13,8 +13,10 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { TestConfig } from '../common/test-config.js'
 import { SecretConfig } from '../../src/common/config.js'
+import { UserToken } from '../../src/auth/entities/user-credential.entity.js'
 
 describe('Auth', () => {
+  let userToken: UserToken
   let app: INestApplication
 
   beforeAll(async () => {
@@ -30,6 +32,8 @@ describe('Auth', () => {
 
     app = createTestingApp(moduleRef)
     await app.init()
+
+    userToken = await getAccessToken(app)
   })
 
   afterAll(async () => {
@@ -181,6 +185,50 @@ describe('Auth', () => {
         title: 'Data already exists',
         detail: `user with email ${USER_EMAIL} already exists`,
       })
+    })
+  })
+
+  describe('/POST refresh', () => {
+    it('should return 422 when refresh token is missing', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({})
+
+      expect(response.statusCode).toBe(422)
+      expect(response.body).toMatchObject({
+        status: 422,
+        errors: [
+          {
+            property: 'refreshToken',
+          },
+        ],
+      })
+    })
+
+    it('should return 401 when refresh token is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken: 'invalid' })
+
+      console.dir(response.body)
+      expect(response.statusCode).toBe(401)
+      expect(response.body).toMatchObject({
+        status: 401,
+        title: 'Refresh token is invalid',
+      })
+    })
+
+    it('should return 200 with new access and refresh token', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken: userToken.refreshToken })
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+      })
+      expect(response.body.accessToken).not.toBe(userToken.accessToken)
+      expect(response.body.refreshToken).not.toBe(userToken.refreshToken)
     })
   })
 })
