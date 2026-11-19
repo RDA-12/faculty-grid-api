@@ -1,7 +1,11 @@
 import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { createTestingApp } from '../helper.js'
+import {
+  createTestingApp,
+  excpectResponseInvalidAuth,
+  excpectResponseMissingAuth,
+} from '../helper.js'
 import { AppModule } from '../../src/app.module.js'
 import { DatabaseModule } from '../../src/common/database/database.module.js'
 import { TestDatabaseModule } from '../common/database/test-database.js'
@@ -52,12 +56,16 @@ describe('User', () => {
         .get('/users/me')
         .send()
 
-      expect(response.statusCode).toBe(401)
-      expect(response.body).toMatchObject({
-        status: 401,
-        title: 'Missing Authentication header',
-        detail: 'Please provide valid Authentication header',
-      })
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users/me')
+        .set('Authorization', 'Bearer lol')
+        .send()
+
+      excpectResponseInvalidAuth(response)
     })
 
     it('should return 200 with correct user', async () => {
