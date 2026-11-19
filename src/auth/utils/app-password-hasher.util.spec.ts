@@ -25,24 +25,26 @@ describe('AppPasswordHasher', () => {
     passwordHasher = moduleRef.get(AppPasswordHasher)
   })
 
-  it('should returns success with correct verification when PasswordHasher.verify success', async () => {
-    const result = await passwordHasher.verify('password', 'encoded')
+  describe('verify', () => {
+    it('should returns success with correct verification when PasswordHasher.verify success', async () => {
+      const result = await passwordHasher.verify('password', 'encoded')
 
-    expect(result).toStrictEqual(AppResult.success(false))
-    expect(nestPasswordHasher.verify).toHaveBeenCalledExactlyOnceWith(
-      'password',
-      'encoded',
-    )
-  })
+      expect(result).toStrictEqual(AppResult.success(false))
+      expect(nestPasswordHasher.verify).toHaveBeenCalledExactlyOnceWith(
+        'password',
+        'encoded',
+      )
+    })
 
-  it('should returns failed when PasswordHasher.verify failed', async () => {
-    vi.spyOn(nestPasswordHasher, 'verify').mockRejectedValueOnce(
-      new Error('error'),
-    )
-    const result = await passwordHasher.verify('password', 'encoded')
+    it('should returns failed when PasswordHasher.verify failed', async () => {
+      vi.spyOn(nestPasswordHasher, 'verify').mockRejectedValueOnce(
+        new Error('error'),
+      )
+      const result = await passwordHasher.verify('password', 'encoded')
 
-    expect(result).toStrictEqual(
-      AppResult.failed(new UnexpectedException('Error: error')),
-    )
+      expect(result).toStrictEqual(
+        AppResult.failed(new UnexpectedException('Error: error')),
+      )
+    })
   })
 })
