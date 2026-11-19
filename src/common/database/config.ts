@@ -1,5 +1,6 @@
 import { RefreshTokenDBEntity } from './entities/refresh-token.entity.js'
 import { UserCredentialDBEntity } from './entities/user-credential.entity.js'
+import { UserRoleDBEntity } from './entities/user-role.entity.js'
 import { UserDBEntity } from './entities/user.entity.js'
 import { DataSource, DataSourceOptions } from 'typeorm'
 
@@ -10,7 +11,12 @@ export const typeOrmConfig: DataSourceOptions = {
   username: 'postgres',
   password: 'test1234',
   database: 'faculty-grid-db',
-  entities: [UserDBEntity, RefreshTokenDBEntity, UserCredentialDBEntity],
+  entities: [
+    UserDBEntity,
+    RefreshTokenDBEntity,
+    UserCredentialDBEntity,
+    UserRoleDBEntity,
+  ],
   synchronize: false,
   migrations: [import.meta.dirname + '/migrations/**/*{.js,.ts}'],
   migrationsRun: false,

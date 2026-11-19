@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module.js'
 import { DatabaseModule } from './common/database/database.module.js'
 import { ConfigModule } from '@nestjs/config'
 import { appConfig } from './common/config.js'
+import { AuthzModule } from './authz/authz.module.js'
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { appConfig } from './common/config.js'
       envFilePath: ['.env.local', '.env'],
       load: [appConfig],
     }),
+    AuthzModule,
   ],
 })
 export class AppModule {}
