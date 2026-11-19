@@ -85,8 +85,18 @@ export class RefreshTokenRepository implements RefreshTokenStore {
     this.logger.debug('refresh token family revoked')
   }
 
-  isRefreshTokenFamilyRevoked(familyId: string): Promise<boolean> {
-    throw new Error('Method not implemented.')
+  async isRefreshTokenFamilyRevoked(familyId: string): Promise<boolean> {
+    this.logger.debug('start check refresh token family revoked status')
+    const result = await this.repository.findOneBy({
+      familyId: familyId,
+      revoked: true,
+    })
+    if (result === null) {
+      this.logger.debug('refresh token family not revoked')
+      return false
+    }
+    this.logger.debug('refresh token family revoked')
+    return true
   }
 
   revokeUserRefreshTokens(userId: string): Promise<void> {
