@@ -99,7 +99,9 @@ export class RefreshTokenRepository implements RefreshTokenStore {
     return true
   }
 
-  revokeUserRefreshTokens(userId: string): Promise<void> {
-    throw new Error('Method not implemented.')
+  async revokeUserRefreshTokens(userId: string): Promise<void> {
+    this.logger.debug('start revoke user refresh token')
+    await this.repository.update({ userId: userId }, { revoked: true })
+    this.logger.debug('user refresh token revoked')
   }
 }

@@ -278,4 +278,67 @@ describe('RefreshTokenRepository', () => {
       expect(result).toBeFalsy()
     })
   })
+
+  describe('revokeUserRefreshTokens', () => {
+    const records: RefreshTokenRecord[] = []
+
+    beforeEach(async () => {
+      for (let i = 0; i < 3; i++) {
+        const insertDb = new RefreshTokenDBEntity()
+        insertDb.id = i.toString()
+        insertDb.familyId = 'familyId'
+        insertDb.userId = 'userId'
+        insertDb.createdAt = new Date()
+        insertDb.expiresAt = new Date()
+        insertDb.familyExpiresAt = new Date()
+        insertDb.claims = { id: 'id' }
+        insertDb.revoked = false
+        const dbData = await dataSource.manager.save(insertDb)
+        const record = {
+          id: dbData.id,
+          familyId: dbData.familyId,
+          userId: dbData.userId,
+          createdAt: dbData.createdAt,
+          expiresAt: dbData.expiresAt,
+          familyExpiresAt: dbData.familyExpiresAt,
+          usedAt: dbData.usedAt ?? undefined,
+          claims: dbData.claims ?? undefined,
+        }
+        records.push(record)
+      }
+    })
+
+    it('should revoked all user refresh tokens', async () => {
+      await refreshTokenRepository.revokeUserRefreshTokens(records[0].userId)
+
+      const rows = await dataSource.manager.find(RefreshTokenDBEntity, {
+        where: {
+          userId: records[0].userId,
+        },
+      })
+      expect(rows.length).toBe(records.length)
+      expect(rows.every((it) => it.revoked)).toBeTruthy()
+    })
+
+    it('should not revoke other user refresh token', async () => {
+      const insertDb = new RefreshTokenDBEntity()
+      insertDb.id = 'outside'
+      insertDb.familyId = 'outsideFamily'
+      insertDb.userId = 'outsideUser'
+      insertDb.createdAt = new Date()
+      insertDb.expiresAt = new Date()
+      insertDb.familyExpiresAt = new Date()
+      insertDb.claims = { id: 'id' }
+      insertDb.revoked = false
+      const outside = await dataSource.manager.save(insertDb)
+
+      await refreshTokenRepository.revokeUserRefreshTokens(records[0].userId)
+
+      const row = await dataSource.manager.findOneBy(RefreshTokenDBEntity, {
+        id: outside.id,
+      })
+      expect(row).not.toBeNull()
+      expect(row!.revoked).toBeFalsy()
+    })
+  })
 })
