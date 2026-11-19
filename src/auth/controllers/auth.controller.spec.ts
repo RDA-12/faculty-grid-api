@@ -15,6 +15,7 @@ import {
   RegisterAdminUseCase,
 } from '../use-cases/register-admin.user-case.js'
 import { User } from '../../user/entities/user.entity.js'
+import { ConfigService } from '@nestjs/config'
 
 describe('AuthController', () => {
   const userToken = new UserToken({
@@ -47,6 +48,10 @@ describe('AuthController', () => {
           useValue: {
             execute: vi.fn().mockResolvedValue(AppResult.success(user)),
           },
+        },
+        {
+          provide: ConfigService,
+          useValue: {},
         },
       ],
     }).compile()
@@ -106,7 +111,7 @@ describe('AuthController', () => {
     })
 
     it('calls RegisterAdminUseCase once', async () => {
-      await authController.registerAdmin(registerAdminRequest)
+      await authController.registerAdmin('key', registerAdminRequest)
 
       expect(registerAdminUseCase.execute).toHaveBeenCalledExactlyOnceWith(
         params,
@@ -114,7 +119,10 @@ describe('AuthController', () => {
     })
 
     it('should return correct user when RegisterAdminUseCase success', async () => {
-      const result = await authController.registerAdmin(registerAdminRequest)
+      const result = await authController.registerAdmin(
+        'key',
+        registerAdminRequest,
+      )
 
       expect(result).toStrictEqual(
         AppResult.success(AuthUserOut.fromUser(user)),
@@ -127,7 +135,10 @@ describe('AuthController', () => {
         AppResult.failed(e),
       )
 
-      const result = await authController.registerAdmin(registerAdminRequest)
+      const result = await authController.registerAdmin(
+        'key',
+        registerAdminRequest,
+      )
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

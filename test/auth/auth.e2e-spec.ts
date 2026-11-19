@@ -10,6 +10,9 @@ import {
   USER_EMAIL,
   USER_PASSWORD,
 } from '../common/mock/db-mock-data.js'
+import { ConfigService } from '@nestjs/config'
+import { TestConfig } from '../common/test-config.js'
+import { SecretConfig } from '../../src/common/config.js'
 
 describe('Auth', () => {
   let app: INestApplication
@@ -20,6 +23,8 @@ describe('Auth', () => {
     })
       .overrideModule(DatabaseModule)
       .useModule(TestDatabaseModule)
+      .overrideProvider(ConfigService)
+      .useClass(TestConfig)
       .compile()
     await createUserMock(moduleRef)
 
@@ -87,15 +92,44 @@ describe('Auth', () => {
   })
 
   describe('/POST register-admin', () => {
+    const apiKey = new TestConfig().get<SecretConfig>('secret')!.api
     const payload = {
       name: 'admin',
       email: 'admin@email.com',
       password: 'password1234',
     }
 
+    it('should return 401 when api key header is missing', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register-admin')
+        .send({ email: 'lol', password: 'password' })
+
+      expect(response.statusCode).toBe(401)
+      expect(response.body).toMatchObject({
+        status: 401,
+        title: 'Missing x-api-key header',
+        detail: 'Please provide valid key to that header',
+      })
+    })
+
+    it('should return 401 when api key header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register-admin')
+        .set('x-api-key', 'invalid')
+        .send({ email: 'lol', password: 'password' })
+
+      expect(response.statusCode).toBe(401)
+      expect(response.body).toMatchObject({
+        status: 401,
+        title: 'Invalid api key',
+        detail: 'Please provide valid api key on the x-api-key header',
+      })
+    })
+
     it('should return 422 when request body is invalid', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/register-admin')
+        .set('x-api-key', apiKey)
         .send({ email: 'lol', password: 'password' })
 
       expect(response.statusCode).toBe(422)
@@ -119,6 +153,7 @@ describe('Auth', () => {
     it('should return 201 with user when success', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/register-admin')
+        .set('x-api-key', apiKey)
         .send(payload)
 
       expect(response.statusCode).toBe(201)
@@ -133,6 +168,7 @@ describe('Auth', () => {
     it('should return 409 when provided email already exists', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/register-admin')
+        .set('x-api-key', apiKey)
         .send({
           name: 'admin',
           email: USER_EMAIL,

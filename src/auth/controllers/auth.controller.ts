@@ -18,6 +18,7 @@ import {
   RegisterAdminParams,
   RegisterAdminUseCase,
 } from '../use-cases/register-admin.user-case.js'
+import { ApiKeyHeader } from '../../common/decorators/api-key-header.decorator.js'
 
 /**
  * Manage request in and response out for auth path
@@ -79,6 +80,7 @@ export class AuthController {
   @Public()
   @Post('register-admin')
   async registerAdmin(
+    @ApiKeyHeader() _apiKey: string,
     @Body() registerAdminDTO: RegisterAdminDTO,
   ): Promise<AppResult<AuthUserOut>> {
     this.logger.debug('delegating register admin to RegisterAdminUseCase')

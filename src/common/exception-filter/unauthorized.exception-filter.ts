@@ -16,20 +16,27 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp()
 
-    let responseBody: FailedResponse<unknown>
+    let title: string
+    let detail: string
     if (exception.errorCode === 'missing_credentials') {
-      responseBody = new FailedResponse(
-        exception.getStatus(),
-        'Missing Authentication header',
-        'Please provide valid Authentication header',
-      )
+      title = 'Missing Authentication header'
+      detail = 'Please provide valid Authentication header'
+    } else if (exception.errorCode === 'missing_api_key') {
+      title = 'Missing x-api-key header'
+      detail = 'Please provide valid key to that header'
+    } else if (exception.errorCode === 'invalid_api_key') {
+      title = 'Invalid api key'
+      detail = 'Please provide valid api key on the x-api-key header'
     } else {
-      responseBody = new FailedResponse(
-        exception.getStatus(),
-        'Unauthorized',
-        exception.message,
-      )
+      title = 'Unauthorized'
+      detail = exception.message
     }
+
+    const responseBody = new FailedResponse(
+      exception.getStatus(),
+      title,
+      detail,
+    )
 
     httpAdapter.reply(ctx.getResponse(), responseBody, exception.getStatus())
   }

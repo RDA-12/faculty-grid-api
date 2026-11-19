@@ -14,15 +14,17 @@ const dbConfig: DatabaseConfig = {
 
 export type SecretConfig = {
   jwt: string
+  api: string
 }
 
 const secretConfig: SecretConfig = {
   jwt:
     process.env.JWT_SECRET ??
     '3cc4238a01a83902c646ac6e4c288971dcaffc491d7477b8843504838e76d6ab',
+  api: process.env.API_SECRET ?? 'api__gm4o88Yx8Q3urTYQtMBvVTspKff0eum8',
 }
 
-type AppConfig = {
+export type AppConfig = {
   database: DatabaseConfig
   secret: SecretConfig
 }
