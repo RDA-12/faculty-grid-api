@@ -82,6 +82,7 @@ export class RefreshTokenDTO {
     this.refreshToken = refreshToken
   }
 
+  @ApiProperty()
   @IsString()
   readonly refreshToken: string
 }
