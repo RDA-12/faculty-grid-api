@@ -89,11 +89,12 @@ export class InvalidRequestReponse<T> extends FailedResponse<T> {
 
 type BaseResponseArgs = {
   status: number
-  description: string
+  description?: string
 }
 
 type ApiSuccessResponseArgs<TModel> = {
   model: TModel
+  isArray?: boolean
 } & BaseResponseArgs
 
 /** Respose decorator for swagger API Success */
@@ -101,6 +102,7 @@ export const ApiSuccessResponse = <TModel extends Type<any>>({
   status,
   model,
   description,
+  isArray = false,
 }: ApiSuccessResponseArgs<TModel>) => {
   return applyDecorators(
     ApiExtraModels(model),
@@ -108,7 +110,7 @@ export const ApiSuccessResponse = <TModel extends Type<any>>({
       status: status,
       description: description,
       schema: {
-        title: `SuccessResponseOf${model.name}`,
+        title: `SuccessResponseOf${isArray ? model.name + 'Array' : model.name}`,
         allOf: [
           { $ref: getSchemaPath(SuccessResponse) },
           {
@@ -116,9 +118,16 @@ export const ApiSuccessResponse = <TModel extends Type<any>>({
               status: {
                 example: status,
               },
-              data: {
-                $ref: getSchemaPath(model),
-              },
+              data: isArray
+                ? {
+                    type: 'array',
+                    items: {
+                      $ref: getSchemaPath(model),
+                    },
+                  }
+                : {
+                    $ref: getSchemaPath(model),
+                  },
             },
           },
         ],

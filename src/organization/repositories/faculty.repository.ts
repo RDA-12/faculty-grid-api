@@ -46,4 +46,11 @@ export class FacultyRepository {
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
+
+  async getAll(): Promise<AppResult<Faculty[]>> {
+    this.logger.debug('start getting all faculties')
+    const rows = await this.repository.find()
+    this.logger.debug('faculties obtained')
+    return AppResult.success(rows.map((it) => it.toDomain()))
+  }
 }

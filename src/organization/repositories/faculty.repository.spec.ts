@@ -6,6 +6,7 @@ import { AppResult } from '../../common/app-result.js'
 import { NotFoundException } from '../../common/app-exception.js'
 import { FacultyRepository } from './faculty.repository.js'
 import { FacultyDBEntity } from '../../common/database/entities/faculty.entity.js'
+import { Faculty } from '../entities/faculty.entity.js'
 
 describe('FacultyRepository', () => {
   let userDb: UserDBEntity
@@ -65,6 +66,26 @@ describe('FacultyRepository', () => {
           new NotFoundException(`user with ID not-found is not found`),
         ),
       )
+    })
+  })
+
+  describe('getAll', () => {
+    const expected: Faculty[] = []
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const facultyInsertDB = new FacultyDBEntity()
+        facultyInsertDB.name = `faculty ${i}`
+        facultyInsertDB.createdBy = userDb.id
+        const facultyDB = await dataSource.manager.save(facultyInsertDB)
+        expected.push(facultyDB.toDomain())
+      }
+    })
+
+    it('should return correct faculties', async () => {
+      const result = await facultyRepository.getAll()
+
+      expect(result).toStrictEqual(AppResult.success(expected))
     })
   })
 })

@@ -9,15 +9,20 @@ export class CreateFacultyDTO {
 }
 
 export class FacultyOut {
-  constructor({ name }: Required<FacultyOut>) {
+  constructor({ id, name }: Required<FacultyOut>) {
+    this.id = id
     this.name = name
   }
+
+  @ApiProperty()
+  @IsString()
+  id: string
 
   @ApiProperty()
   @IsString()
   name: string
 
   static fromFaculty(faculty: Faculty) {
-    return new FacultyOut({ name: faculty.name })
+    return new FacultyOut({ id: faculty.id, name: faculty.name })
   }
 }

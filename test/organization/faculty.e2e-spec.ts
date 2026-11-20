@@ -13,9 +13,11 @@ import {
   excpectResponseMissingAuth,
   getAccessToken,
 } from '../helper.js'
+import { DataSource } from 'typeorm'
 
 describe('Faculty', () => {
   let accessToken: string
+  let dataSource: DataSource
   let app: INestApplication
 
   beforeAll(async () => {
@@ -28,6 +30,7 @@ describe('Faculty', () => {
       .useClass(TestConfig)
       .compile()
     await createUserMock(moduleRef)
+    dataSource = moduleRef.get(DataSource)
 
     app = createTestingApp(moduleRef)
     await app.init()
@@ -72,6 +75,54 @@ describe('Faculty', () => {
         .post('/faculties')
         .set('Authorization', 'Bearer lol')
         .send(payload)
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
+  describe('/GET faculties', () => {
+    const expected: unknown[] = []
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "faculties" RESTART IDENTITY CASCADE`,
+      )
+    })
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const response = await request(app.getHttpServer())
+          .post('/faculties')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .send({
+            name: `faculty ${i}`,
+          })
+        expected.push(response.body.data)
+      }
+    })
+
+    it('should return 200 with faculties', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/faculties')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: expected,
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).get('/faculties')
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/faculties')
+        .set('Authorization', 'Bearer lol')
 
       excpectResponseInvalidAuth(response)
     })

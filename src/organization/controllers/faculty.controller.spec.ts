@@ -10,6 +10,7 @@ import {
   CreateFacultyUseCase,
 } from '../user-cases/create-faculty.use-case.js'
 import { FacultyController } from './faculty.controller.js'
+import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
 
 describe('FacultyController', () => {
   const user = new User({
@@ -23,6 +24,7 @@ describe('FacultyController', () => {
   })
   const facultyOut = FacultyOut.fromFaculty(faculty)
   let createFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
+  let getFacultiesUseCase: { execute: ReturnType<typeof vi.fn> }
   let facultyController: FacultyController
 
   beforeAll(async () => {
@@ -36,6 +38,12 @@ describe('FacultyController', () => {
           },
         },
         {
+          provide: GetFacultiesUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success([faculty])),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {},
         },
@@ -43,6 +51,7 @@ describe('FacultyController', () => {
     }).compile()
 
     createFacultyUseCase = moduleRef.get(CreateFacultyUseCase)
+    getFacultiesUseCase = moduleRef.get(GetFacultiesUseCase)
 
     facultyController = moduleRef.get(FacultyController)
   })
@@ -86,6 +95,25 @@ describe('FacultyController', () => {
         user,
         createFacultyRequest,
       )
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('getFaculties', () => {
+    it('should return correct faculties when GetFacultiesUseCase success', async () => {
+      const result = await facultyController.getFaculties(user)
+
+      expect(result).toStrictEqual(AppResult.success([facultyOut]))
+    })
+
+    it('should returns failed when GetFacultiesUseCase failed', async () => {
+      const e = AppException.test()
+      vi.spyOn(getFacultiesUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await facultyController.getFaculties(user)
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

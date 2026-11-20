@@ -14,3 +14,10 @@ export interface PromiseUseCase<P, R> {
    */
   execute(params: P): Promise<AppResult<R>>
 }
+
+export interface NoParamPromiseUseCase<R> {
+  /**
+   * execute this use case
+   */
+  execute(): Promise<AppResult<R>>
+}
