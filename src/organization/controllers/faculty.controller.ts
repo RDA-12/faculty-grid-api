@@ -23,9 +23,9 @@ import {
 import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
 import { FacultyPolicy } from '../policies/faculty.policy.js'
 import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
-import { Can } from '@nestjs/authorization'
 import { ApiNoContentResponse } from '@nestjs/swagger'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
+import { Anyone } from '../../authz/decorators/anyone.decorator.js'
 
 @Controller('faculties')
 export class FacultyController {
@@ -74,7 +74,7 @@ export class FacultyController {
     model: FacultyOut,
     isArray: true,
   })
-  @Can.Anyone()
+  @Anyone()
   @Get()
   async getFaculties(@CurrentUser() _user: User) {
     this.logger.debug('delegating get faculties to GetFacultiesUseCase')
