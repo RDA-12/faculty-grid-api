@@ -53,4 +53,11 @@ export class FacultyRepository {
     this.logger.debug('faculties obtained')
     return AppResult.success(rows.map((it) => it.toDomain()))
   }
+
+  async deleteById(id: string): Promise<AppResult<null>> {
+    this.logger.debug('start deleting faculty')
+    await this.repository.delete({ id: id })
+    this.logger.debug('faculty deleted')
+    return AppResult.success(null)
+  }
 }

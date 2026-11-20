@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Logger, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Logger,
+  Param,
+  Post,
+} from '@nestjs/common'
 import {
   CreateFacultyParams,
   CreateFacultyUseCase,
@@ -15,12 +24,15 @@ import { RequiredPermisson } from '../../authz/decorators/required-permission.de
 import { FacultyPolicy } from '../policies/faculty.policy.js'
 import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
 import { Can } from '@nestjs/authorization'
+import { ApiNoContentResponse } from '@nestjs/swagger'
+import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 
 @Controller('faculties')
 export class FacultyController {
   constructor(
     private readonly createFacultyUseCase: CreateFacultyUseCase,
     private readonly GetFacultiesUseCase: GetFacultiesUseCase,
+    private readonly deleteFacultyUseCase: DeleteFacultyUseCase,
   ) {
     this.logger = new Logger('FacultyController')
   }
@@ -75,5 +87,18 @@ export class FacultyController {
     return AppResult.success(
       result.data!.map((it) => FacultyOut.fromFaculty(it)),
     )
+  }
+
+  @ApiNoContentResponse({ description: 'Faculty successfully deleted' })
+  @RequiredPermisson(FacultyPolicy, 'delete')
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteFaculty(@CurrentUser() _user: User, @Param('id') id: string) {
+    this.logger.debug('delegating delete faculty to DeleteFacultyUseCase')
+    const result = await this.deleteFacultyUseCase.execute(id)
+    if (result.exception) {
+      this.logger.debug('failed to delete faculty')
+      return result
+    }
   }
 }

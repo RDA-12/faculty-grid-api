@@ -11,6 +11,7 @@ import {
 } from '../user-cases/create-faculty.use-case.js'
 import { FacultyController } from './faculty.controller.js'
 import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
+import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 
 describe('FacultyController', () => {
   const user = new User({
@@ -25,6 +26,7 @@ describe('FacultyController', () => {
   const facultyOut = FacultyOut.fromFaculty(faculty)
   let createFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let getFacultiesUseCase: { execute: ReturnType<typeof vi.fn> }
+  let deleteFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let facultyController: FacultyController
 
   beforeAll(async () => {
@@ -44,6 +46,12 @@ describe('FacultyController', () => {
           },
         },
         {
+          provide: DeleteFacultyUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(null)),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {},
         },
@@ -52,6 +60,7 @@ describe('FacultyController', () => {
 
     createFacultyUseCase = moduleRef.get(CreateFacultyUseCase)
     getFacultiesUseCase = moduleRef.get(GetFacultiesUseCase)
+    deleteFacultyUseCase = moduleRef.get(DeleteFacultyUseCase)
 
     facultyController = moduleRef.get(FacultyController)
   })
@@ -114,6 +123,31 @@ describe('FacultyController', () => {
       )
 
       const result = await facultyController.getFaculties(user)
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('deleteFaculty', () => {
+    it('calls DeleteFacultyUseCase once', async () => {
+      await facultyController.deleteFaculty(user, 'id')
+
+      expect(deleteFacultyUseCase.execute).toHaveBeenCalledExactlyOnceWith('id')
+    })
+
+    it('should return undefined when DeleteFacultyUseCase success', async () => {
+      const result = await facultyController.deleteFaculty(user, 'id')
+
+      expect(result).toBeUndefined()
+    })
+
+    it('should returns failed when DeleteFacultyUseCase failed', async () => {
+      const e = AppException.test()
+      vi.spyOn(deleteFacultyUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await facultyController.deleteFaculty(user, 'id')
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

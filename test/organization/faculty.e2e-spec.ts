@@ -127,4 +127,65 @@ describe('Faculty', () => {
       excpectResponseInvalidAuth(response)
     })
   })
+
+  describe('/DELETE faculties/:id', () => {
+    let toBeDeleted: { id: string }
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "faculties" RESTART IDENTITY CASCADE`,
+      )
+    })
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const response = await request(app.getHttpServer())
+          .post('/faculties')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .send({
+            name: `faculty ${i}`,
+          })
+        if (i === 0) {
+          toBeDeleted = response.body.data
+        }
+      }
+    })
+
+    it('should return 204 when deleting correct faculty', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/faculties/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(204)
+      expect(response.body).toStrictEqual({})
+    })
+
+    it('should return 204 when deleting non-existing faculty', async () => {
+      await request(app.getHttpServer())
+        .delete(`/faculties/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+      const response = await request(app.getHttpServer())
+        .delete(`/faculties/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(204)
+      expect(response.body).toStrictEqual({})
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/faculties/nothing`,
+      )
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/faculties/nothing')
+        .set('Authorization', 'Bearer lol')
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
 })

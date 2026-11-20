@@ -88,4 +88,29 @@ describe('FacultyRepository', () => {
       expect(result).toStrictEqual(AppResult.success(expected))
     })
   })
+
+  describe('deleteById', () => {
+    let toBeDeleted: FacultyDBEntity
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const facultyInsertDB = new FacultyDBEntity()
+        facultyInsertDB.name = `faculty ${i}`
+        facultyInsertDB.createdBy = userDb.id
+        const facultyDB = await dataSource.manager.save(facultyInsertDB)
+        if (i === i) {
+          toBeDeleted = facultyDB
+        }
+      }
+    })
+
+    it('should remove correct faculty', async () => {
+      const result = await facultyRepository.deleteById(toBeDeleted.id)
+
+      expect(result).toStrictEqual(AppResult.success(null))
+
+      const rows = await dataSource.manager.find(FacultyDBEntity)
+      expect(rows.map((it) => it.id).includes(toBeDeleted.id)).toBeFalsy()
+    })
+  })
 })
