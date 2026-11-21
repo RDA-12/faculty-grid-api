@@ -9,6 +9,7 @@ import { InvalidRequestExceptionFilter } from './common/exception-filter/invalid
 import { UnauthorizedExceptionFilter } from './common/exception-filter/unauthorized.exception-filter.js'
 import { PaginationOut } from './common/pagination.js'
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js'
+import { CatchEverythingExceptionFilter } from './common/exception-filter/catch-everything.exception-filter.js'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -29,6 +30,7 @@ async function bootstrap() {
     new ResponseTransformerIntereceptor(),
   )
   app.useGlobalFilters(
+    new CatchEverythingExceptionFilter(app.get(HttpAdapterHost)),
     new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
     new UnauthorizedExceptionFilter(app.get(HttpAdapterHost)),
   )

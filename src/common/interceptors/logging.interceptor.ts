@@ -5,6 +5,8 @@ import {
   NestInterceptor,
 } from '@nestjs/common'
 import { Observable, tap } from 'rxjs'
+import { AppException } from '../app-exception.js'
+import { FailedResponse } from '../app-response.js'
 
 export class LoggingInterceptor implements NestInterceptor {
   constructor() {
@@ -39,10 +41,17 @@ export class LoggingInterceptor implements NestInterceptor {
           })
         },
         error: (err) => {
-          this.logger.debug('request finished', {
-            error: err,
-            duration: performance.now() - start,
-          })
+          if (err instanceof AppException) {
+            this.logger.debug('request finished', {
+              data: new FailedResponse(err.status, err.title, err.detail),
+              duration: performance.now() - start,
+            })
+          } else {
+            this.logger.error('request finished with error', {
+              error: err,
+              duration: performance.now() - start,
+            })
+          }
         },
       }),
     )
