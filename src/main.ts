@@ -8,6 +8,7 @@ import { InvalidRequestException } from './common/app-exception.js'
 import { InvalidRequestExceptionFilter } from './common/exception-filter/invalid-request.exception-filter.js'
 import { UnauthorizedExceptionFilter } from './common/exception-filter/unauthorized.exception-filter.js'
 import { PaginationOut } from './common/pagination.js'
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -23,7 +24,10 @@ async function bootstrap() {
         InvalidRequestException.fromValidationPipe(errors),
     }),
   )
-  app.useGlobalInterceptors(new ResponseTransformerIntereceptor())
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new ResponseTransformerIntereceptor(),
+  )
   app.useGlobalFilters(
     new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
     new UnauthorizedExceptionFilter(app.get(HttpAdapterHost)),
