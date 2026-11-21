@@ -5,12 +5,21 @@ import { Program } from '../entities/program.entity.js'
 import { ProgramRepository } from '../repositories/program.repository.js'
 import { AppResult } from '../../common/app-result.js'
 
+export class GetProgramsParams extends Pagination {
+  constructor({ page, pageSize, facultyId }: Partial<GetProgramsParams>) {
+    super({ page, pageSize })
+    this.facultyId = facultyId
+  }
+
+  readonly facultyId?: string
+}
+
 /**
  * Use case to get programs
  */
 @Injectable()
 export class GetProgramsUseCase implements PromiseUseCase<
-  Pagination,
+  GetProgramsParams,
   PaginatedResult<Program>
 > {
   constructor(private readonly programRepository: ProgramRepository) {
@@ -19,7 +28,9 @@ export class GetProgramsUseCase implements PromiseUseCase<
 
   private readonly logger: Logger
 
-  execute(params?: Pagination): Promise<AppResult<PaginatedResult<Program>>> {
+  execute(
+    params?: GetProgramsParams,
+  ): Promise<AppResult<PaginatedResult<Program>>> {
     this.logger.debug('delegating get programs to ProgramRepository')
     return this.programRepository.getAll(params)
   }

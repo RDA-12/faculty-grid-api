@@ -14,6 +14,7 @@ import {
   Pagination,
   PaginationResult,
 } from '../../common/pagination.js'
+import { GetProgramsParams } from '../user-cases/get-programs.use-case.js'
 
 describe('ProgramRepository', () => {
   let params: CreateProgramParams
@@ -172,6 +173,25 @@ describe('ProgramRepository', () => {
               page: 1,
               pageSize: 1,
               total: 5,
+            }),
+          }),
+        ),
+      )
+    })
+
+    it('should return correct filtered programs by facultyId', async () => {
+      const result = await programRepository.getAll(
+        new GetProgramsParams({ facultyId: 'id' }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: [],
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 10,
+              total: 0,
             }),
           }),
         ),

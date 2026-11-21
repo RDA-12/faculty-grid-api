@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsEnum, IsString } from 'class-validator'
+import { IsEnum, IsOptional, IsString } from 'class-validator'
 import { Program, ProgramDegreeLevel } from '../entities/program.entity.js'
+import { PaginationQuery } from '../../common/pagination.js'
 
 export class CreateProgramDTO {
   constructor(args?: Partial<CreateProgramDTO>) {
@@ -48,4 +49,18 @@ export class ProgramOut {
   static fromProgram(program: Program) {
     return new ProgramOut(program)
   }
+}
+
+export class ProgramsQuery extends PaginationQuery {
+  constructor(args?: Partial<ProgramsQuery>) {
+    super()
+    if (args) {
+      Object.assign(this, args)
+    }
+  }
+
+  @ApiProperty({ description: 'Filter program by faculty', required: false })
+  @IsString()
+  @IsOptional()
+  facultyId?: string
 }

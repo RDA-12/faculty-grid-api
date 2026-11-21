@@ -8,11 +8,8 @@ import {
   UnexpectedException,
   NotFoundException,
 } from '../../common/app-exception.js'
-import {
-  PaginatedResult,
-  Pagination,
-  PaginationResult,
-} from '../../common/pagination.js'
+import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
+import { GetProgramsParams } from '../user-cases/get-programs.use-case.js'
 
 /**
  * Repository to manage program data
@@ -52,13 +49,19 @@ export class ProgramRepository {
   }
 
   async getAll(
-    pagination?: Pagination,
+    params?: GetProgramsParams,
   ): Promise<AppResult<PaginatedResult<Program>>> {
-    const page = pagination?.page ?? 1
-    const pageSize = pagination?.pageSize ?? 10
+    const page = params?.page ?? 1
+    const pageSize = params?.pageSize ?? 10
+    const query = this.repository.createQueryBuilder('programs')
+    if (params?.facultyId) {
+      this.logger.debug('filter programs by facultyId')
+      query.where('programs.faculty_id = :facultyId', {
+        facultyId: params.facultyId,
+      })
+    }
     this.logger.debug('start getting all programs')
-    const [rows, total] = await this.repository
-      .createQueryBuilder('programs')
+    const [rows, total] = await query
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .orderBy({

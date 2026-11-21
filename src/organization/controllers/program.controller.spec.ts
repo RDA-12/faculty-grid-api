@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import { User } from '../../user/entities/user.entity.js'
 import { Program, ProgramDegreeLevel } from '../entities/program.entity.js'
 import { ProgramController } from './program.controller.js'
-import { CreateProgramDTO, ProgramOut } from './program.dto.js'
+import { CreateProgramDTO, ProgramOut, ProgramsQuery } from './program.dto.js'
 import {
   CreateProgramParams,
   CreateProgramUseCase,
@@ -15,7 +15,10 @@ import {
   Pagination,
   PaginationResult,
 } from '../../common/pagination.js'
-import { GetProgramsUseCase } from '../user-cases/get-programs.use-case.js'
+import {
+  GetProgramsParams,
+  GetProgramsUseCase,
+} from '../user-cases/get-programs.use-case.js'
 
 describe('ProgramController', () => {
   const user = new User({
@@ -138,6 +141,16 @@ describe('ProgramController', () => {
 
       expect(getProgramsUseCase.execute).toHaveBeenCalledExactlyOnceWith(
         pagination,
+      )
+    })
+
+    it('calls GetProgramsUseCase once with facultyId filter', async () => {
+      const query = new ProgramsQuery({ facultyId: 'facultyId' })
+
+      await programController.getPrograms(user, query)
+
+      expect(getProgramsUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        new GetProgramsParams({ facultyId: query.facultyId }),
       )
     })
 

@@ -172,6 +172,23 @@ describe('Program', () => {
       })
     })
 
+    it('should return correct data when filtered by faculty', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/programs?facultyId=lol')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          pageSize: 10,
+        },
+      })
+    })
+
     it('should return 401 when Auth header is missing', async () => {
       const response = await request(app.getHttpServer()).get('/programs')
 

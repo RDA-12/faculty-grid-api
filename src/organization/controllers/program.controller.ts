@@ -1,7 +1,7 @@
 import { CurrentUser } from '@nestjs/authentication'
 import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common'
 import { User } from '../../user/entities/user.entity.js'
-import { CreateProgramDTO, ProgramOut } from './program.dto.js'
+import { CreateProgramDTO, ProgramOut, ProgramsQuery } from './program.dto.js'
 import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
 import {
   ApiFailedResponse,
@@ -15,12 +15,11 @@ import {
 import { AppResult } from '../../common/app-result.js'
 import { ProgramPolicy } from '../policies/program.policy.js'
 import { Anyone } from '../../authz/decorators/anyone.decorator.js'
+import { PaginatedResult } from '../../common/pagination.js'
 import {
-  PaginatedResult,
-  Pagination,
-  PaginationQuery,
-} from '../../common/pagination.js'
-import { GetProgramsUseCase } from '../user-cases/get-programs.use-case.js'
+  GetProgramsParams,
+  GetProgramsUseCase,
+} from '../user-cases/get-programs.use-case.js'
 
 @Controller('programs')
 export class ProgramController {
@@ -78,11 +77,11 @@ export class ProgramController {
   @Get()
   async getPrograms(
     @CurrentUser() _user: User,
-    @Query() params?: PaginationQuery,
+    @Query() query?: ProgramsQuery,
   ): Promise<AppResult<PaginatedResult<ProgramOut>>> {
     this.logger.debug('delegating get programs to GetProgramsUseCase')
     const result = await this.getProgramsUseCase.execute(
-      new Pagination(params ?? {}),
+      new GetProgramsParams(query ?? {}),
     )
     if (result.exception) {
       this.logger.debug('failed to get programs')

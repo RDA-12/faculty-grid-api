@@ -1,7 +1,10 @@
 import { AppException } from '../../common/app-exception.js'
 import { AppResult } from '../../common/app-result.js'
 import { Test } from '@nestjs/testing'
-import { GetProgramsUseCase } from './get-programs.use-case.js'
+import {
+  GetProgramsParams,
+  GetProgramsUseCase,
+} from './get-programs.use-case.js'
 import {
   PaginatedResult,
   Pagination,
@@ -51,6 +54,13 @@ describe('GetProgramsUseCase', () => {
 
   it('should calls ProgramRepository.getAll once', async () => {
     const params = new Pagination({})
+    await getProgramsUseCase.execute(params)
+
+    expect(facultyRepository.getAll).toHaveBeenCalledExactlyOnceWith(params)
+  })
+
+  it('should calls ProgramRepository.getAll once with facultyId filter', async () => {
+    const params = new GetProgramsParams({ facultyId: 'faculty' })
     await getProgramsUseCase.execute(params)
 
     expect(facultyRepository.getAll).toHaveBeenCalledExactlyOnceWith(params)
