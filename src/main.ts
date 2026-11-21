@@ -1,6 +1,6 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module.js'
-import { ConsoleLogger, ValidationPipe } from '@nestjs/common'
+import { ConsoleLogger, INestApplication, ValidationPipe } from '@nestjs/common'
 import { ResponseTransformerIntereceptor } from './common/interceptors/response-transformer.interceptor.js'
 import { DocumentBuilder, getSchemaPath, SwaggerModule } from '@nestjs/swagger'
 import { FailedResponse, SuccessResponse } from './common/app-response.js'
@@ -11,12 +11,7 @@ import { PaginationOut } from './common/pagination.js'
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js'
 import { CatchEverythingExceptionFilter } from './common/exception-filter/catch-everything.exception-filter.js'
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: new ConsoleLogger({
-      prefix: 'FacultyGrid',
-    }),
-  })
+export function configureApp(app: INestApplication) {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -34,6 +29,15 @@ async function bootstrap() {
     new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
     new UnauthorizedExceptionFilter(app.get(HttpAdapterHost)),
   )
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    logger: new ConsoleLogger({
+      prefix: 'FacultyGrid',
+    }),
+  })
+  configureApp(app)
 
   const config = new DocumentBuilder()
     .addBearerAuth()

@@ -1,29 +1,13 @@
 import request, { Response } from 'supertest'
-import { INestApplication, ValidationPipe } from '@nestjs/common'
+import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { ResponseTransformerIntereceptor } from '../src/common/interceptors/response-transformer.interceptor.js'
-import { InvalidRequestException } from '../src/common/app-exception.js'
-import { InvalidRequestExceptionFilter } from '../src/common/exception-filter/invalid-request.exception-filter.js'
-import { HttpAdapterHost } from '@nestjs/core'
-import { UnauthorizedExceptionFilter } from '../src/common/exception-filter/unauthorized.exception-filter.js'
 import { USER_EMAIL, USER_PASSWORD } from './common/mock/db-mock-data.js'
 import { UserToken } from '../src/auth/entities/user-credential.entity.js'
+import { configureApp } from '../src/main.js'
 
 export function createTestingApp(moduleRef: TestingModule): INestApplication {
   const app = moduleRef.createNestApplication()
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      errorHttpStatusCode: 422,
-      exceptionFactory: (errors) =>
-        InvalidRequestException.fromValidationPipe(errors),
-    }),
-  )
-  app.useGlobalInterceptors(new ResponseTransformerIntereceptor())
-  app.useGlobalFilters(
-    new InvalidRequestExceptionFilter(app.get(HttpAdapterHost)),
-    new UnauthorizedExceptionFilter(app.get(HttpAdapterHost)),
-  )
+  configureApp(app)
   return app
 }
 
