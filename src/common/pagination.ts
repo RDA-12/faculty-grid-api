@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Type } from 'class-transformer'
+import { Transform } from 'class-transformer'
 import { IsInt, IsOptional } from 'class-validator'
 
 /**
@@ -71,12 +71,12 @@ export class PaginationQuery {
   @ApiProperty({ required: false, default: 1 })
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => (Number(value) === 0 ? 1 : Number(value)))
   page?: number
 
   @ApiProperty({ required: false, default: 10 })
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => (Number(value) === 0 ? 1 : Number(value)))
   pageSize?: number
 }
