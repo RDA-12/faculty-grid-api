@@ -81,8 +81,19 @@ export class FacultyRepository {
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {
+    this.logger.debug('start get faculty with its programs')
+    const facultyDb = await this.repository.findOne({
+      where: { id: id },
+      relations: {
+        programs: true,
+      },
+    })
+    if (!facultyDb) {
+      this.logger.debug('faculty not found. skip deletion')
+      return AppResult.success(null)
+    }
     this.logger.debug('start deleting faculty')
-    await this.repository.delete({ id: id })
+    await this.repository.softRemove(facultyDb)
     this.logger.debug('faculty deleted')
     return AppResult.success(null)
   }

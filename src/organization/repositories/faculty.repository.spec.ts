@@ -12,6 +12,8 @@ import {
   Pagination,
   PaginationResult,
 } from '../../common/pagination.js'
+import { ProgramDBEntity } from '../../common/database/entities/program.entity.js'
+import { ProgramDegreeLevel } from '../entities/program.entity.js'
 
 describe('FacultyRepository', () => {
   let userDb: UserDBEntity
@@ -142,13 +144,29 @@ describe('FacultyRepository', () => {
       }
     })
 
-    it('should remove correct faculty', async () => {
+    it('should soft remove correct faculty', async () => {
       const result = await facultyRepository.deleteById(toBeDeleted.id)
 
       expect(result).toStrictEqual(AppResult.success(null))
 
-      const rows = await dataSource.manager.find(FacultyDBEntity)
-      expect(rows.map((it) => it.id).includes(toBeDeleted.id)).toBeFalsy()
+      const rows = await dataSource.manager.find(FacultyDBEntity, {
+        withDeleted: true,
+      })
+      expect(rows.map((it) => it.id).includes(toBeDeleted.id)).toBeTruthy()
+    })
+
+    it('should soft remove its programs too', async () => {
+      const programDb = new ProgramDBEntity()
+      programDb.name = 'program 1'
+      programDb.degreeLevel = ProgramDegreeLevel.bachelor
+      programDb.facultyId = toBeDeleted.id
+      programDb.createdBy = userDb.id
+      await dataSource.manager.save(programDb)
+
+      await facultyRepository.deleteById(toBeDeleted.id)
+
+      const rows = await dataSource.manager.find(ProgramDBEntity)
+      expect(rows.length).toBe(0)
     })
   })
 })
