@@ -10,6 +10,12 @@ import {
 import { AppResult } from '../../common/app-result.js'
 import { ConfigService } from '@nestjs/config'
 import { AppException } from '../../common/app-exception.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
+import { GetProgramsUseCase } from '../user-cases/get-programs.use-case.js'
 
 describe('ProgramController', () => {
   const user = new User({
@@ -23,8 +29,17 @@ describe('ProgramController', () => {
     degreeLevel: ProgramDegreeLevel.bachelor,
     facultyId: 'facultyId',
   })
+  const paginatedResult = new PaginatedResult({
+    data: [program],
+    pagination: new PaginationResult({
+      total: 10,
+      page: 1,
+      pageSize: 0,
+    }),
+  })
   const programOut = ProgramOut.fromProgram(program)
   let createProgramUseCase: { execute: ReturnType<typeof vi.fn> }
+  let getProgramsUseCase: { execute: ReturnType<typeof vi.fn> }
   let programController: ProgramController
 
   beforeAll(async () => {
@@ -38,6 +53,14 @@ describe('ProgramController', () => {
           },
         },
         {
+          provide: GetProgramsUseCase,
+          useValue: {
+            execute: vi
+              .fn()
+              .mockResolvedValue(AppResult.success(paginatedResult)),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {},
         },
@@ -45,6 +68,7 @@ describe('ProgramController', () => {
     }).compile()
 
     createProgramUseCase = moduleRef.get(CreateProgramUseCase)
+    getProgramsUseCase = moduleRef.get(GetProgramsUseCase)
 
     programController = moduleRef.get(ProgramController)
   })
@@ -93,6 +117,47 @@ describe('ProgramController', () => {
         user,
         createProgramRequest,
       )
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('getPrograms', () => {
+    it('calls GetProgramsUseCase once', async () => {
+      await programController.getPrograms(user)
+
+      expect(getProgramsUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        new Pagination({}),
+      )
+    })
+
+    it('calls GetProgramsUseCase once with pagination', async () => {
+      const pagination = new Pagination({ page: 10 })
+
+      await programController.getPrograms(user, pagination)
+
+      expect(getProgramsUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        pagination,
+      )
+    })
+
+    it('should return correct faculties when GetProgramsUseCase success', async () => {
+      const result = await programController.getPrograms(user)
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          paginatedResult.mapData((it) => ProgramOut.fromProgram(it)),
+        ),
+      )
+    })
+
+    it('should returns failed when GetProgramsUseCase failed', async () => {
+      const e = AppException.test()
+      vi.spyOn(getProgramsUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await programController.getPrograms(user)
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

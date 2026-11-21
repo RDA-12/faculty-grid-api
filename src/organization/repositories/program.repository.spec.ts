@@ -5,10 +5,15 @@ import { FacultyDBEntity } from '../../common/database/entities/faculty.entity.j
 import { Test } from '@nestjs/testing'
 import { createTestDataSource } from '../../../test/common/database/test-database.js'
 import { CreateProgramParams } from '../user-cases/create-program.use-case.js'
-import { ProgramDegreeLevel } from '../entities/program.entity.js'
+import { Program, ProgramDegreeLevel } from '../entities/program.entity.js'
 import { ProgramDBEntity } from '../../common/database/entities/program.entity.js'
 import { AppResult } from '../../common/app-result.js'
 import { NotFoundException } from '../../common/app-exception.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
 
 describe('ProgramRepository', () => {
   let params: CreateProgramParams
@@ -114,6 +119,61 @@ describe('ProgramRepository', () => {
           new NotFoundException(
             `faculty with ID not-found or user with ID ${params.createdBy} is not found`,
           ),
+        ),
+      )
+    })
+  })
+
+  describe('getAll', () => {
+    let expected: Program[] = []
+
+    beforeEach(async () => {
+      const newData: Program[] = []
+      for (var i = 0; i < 5; i++) {
+        const programInsertDB = new ProgramDBEntity()
+        programInsertDB.name = `program ${i}`
+        programInsertDB.createdBy = userDb.id
+        programInsertDB.createdAt = new Date(2026, 11, 1 + i)
+        programInsertDB.facultyId = facultyDb.id
+        programInsertDB.degreeLevel = ProgramDegreeLevel.bachelor
+        const programDB = await dataSource.manager.save(programInsertDB)
+        newData.unshift(programDB.toDomain())
+      }
+      expected = newData
+    })
+
+    it('should return correct programs', async () => {
+      const result = await programRepository.getAll()
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: expected,
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 10,
+              total: 5,
+            }),
+          }),
+        ),
+      )
+    })
+
+    it('should return correct paginated programs', async () => {
+      const result = await programRepository.getAll(
+        new Pagination({ pageSize: 1 }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: [expected[0]],
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 1,
+              total: 5,
+            }),
+          }),
         ),
       )
     })

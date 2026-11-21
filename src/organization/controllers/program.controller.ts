@@ -1,5 +1,5 @@
 import { CurrentUser } from '@nestjs/authentication'
-import { Body, Controller, Logger, Post } from '@nestjs/common'
+import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common'
 import { User } from '../../user/entities/user.entity.js'
 import { CreateProgramDTO, ProgramOut } from './program.dto.js'
 import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
@@ -14,10 +14,20 @@ import {
 } from '../user-cases/create-program.use-case.js'
 import { AppResult } from '../../common/app-result.js'
 import { ProgramPolicy } from '../policies/program.policy.js'
+import { Anyone } from '../../authz/decorators/anyone.decorator.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationQuery,
+} from '../../common/pagination.js'
+import { GetProgramsUseCase } from '../user-cases/get-programs.use-case.js'
 
 @Controller('programs')
 export class ProgramController {
-  constructor(private readonly createProgramUseCase: CreateProgramUseCase) {
+  constructor(
+    private readonly createProgramUseCase: CreateProgramUseCase,
+    private readonly getProgramsUseCase: GetProgramsUseCase,
+  ) {
     this.logger = new Logger('ProgramController')
   }
 
@@ -30,7 +40,7 @@ export class ProgramController {
   })
   @ApiFailedResponse({
     status: 404,
-    description: 'Faculty cannot be found',
+    description: 'Program cannot be found',
   })
   @ApiInvalidRequestResponse({
     description: 'There are invalid data in the body',
@@ -56,5 +66,31 @@ export class ProgramController {
     }
     this.logger.debug('program created')
     return AppResult.success(ProgramOut.fromProgram(result.data!))
+  }
+
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Programs obtained successfully',
+    model: ProgramOut,
+    isArray: true,
+  })
+  @Anyone()
+  @Get()
+  async getPrograms(
+    @CurrentUser() _user: User,
+    @Query() params?: PaginationQuery,
+  ): Promise<AppResult<PaginatedResult<ProgramOut>>> {
+    this.logger.debug('delegating get programs to GetProgramsUseCase')
+    const result = await this.getProgramsUseCase.execute(
+      new Pagination(params ?? {}),
+    )
+    if (result.exception) {
+      this.logger.debug('failed to get programs')
+      return AppResult.failed(result.exception)
+    }
+    this.logger.debug('programs obtained')
+    return AppResult.success(
+      result.data!.mapData((it) => ProgramOut.fromProgram(it)),
+    )
   }
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne, type Relation } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, type Relation } from 'typeorm'
 import { AutoIdTimestampCreatedBy } from './common.entity.js'
 import {
   Program,
@@ -25,7 +25,7 @@ export class ProgramDBEntity extends AutoIdTimestampCreatedBy {
   @Column({ name: 'faculty_id' })
   facultyId: string
 
-  @OneToOne(() => FacultyDBEntity)
+  @ManyToOne(() => FacultyDBEntity, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'faculty_id' })
   faculty: Relation<FacultyDBEntity>
 

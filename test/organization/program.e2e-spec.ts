@@ -13,9 +13,11 @@ import {
   excpectResponseMissingAuth,
   getAccessToken,
 } from '../helper.js'
+import { DataSource } from 'typeorm'
 
 describe('Program', () => {
   let faculty: { id: string }
+  let dataSource: DataSource
   let accessToken: string
   let app: INestApplication
 
@@ -29,6 +31,7 @@ describe('Program', () => {
       .useClass(TestConfig)
       .compile()
     await createUserMock(moduleRef)
+    dataSource = moduleRef.get(DataSource)
 
     app = createTestingApp(moduleRef)
     await app.init()
@@ -110,6 +113,75 @@ describe('Program', () => {
         .post('/programs')
         .set('Authorization', 'Bearer lol')
         .send(payload)
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
+  describe('/GET programs', () => {
+    let expected: unknown[] = []
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "programs" RESTART IDENTITY CASCADE`,
+      )
+      for (var i = 0; i < 5; i++) {
+        const response = await request(app.getHttpServer())
+          .post('/programs')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .send({
+            name: `program ${i}`,
+            facultyId: faculty.id,
+            degreeLevel: 'bachelor',
+          })
+        expected.unshift(response.body.data)
+      }
+    })
+
+    it('should return 200 with programs', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/programs')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: expected,
+        pagination: {
+          total: 5,
+          page: 1,
+          pageSize: 10,
+        },
+      })
+    })
+
+    it('should return correct data when pagination used', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/programs?page=2&pageSize=1')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: [expected[1]],
+        pagination: {
+          total: 5,
+          page: 2,
+          pageSize: 1,
+        },
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).get('/programs')
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/programs')
+        .set('Authorization', 'Bearer lol')
 
       excpectResponseInvalidAuth(response)
     })

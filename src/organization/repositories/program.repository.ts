@@ -8,6 +8,11 @@ import {
   UnexpectedException,
   NotFoundException,
 } from '../../common/app-exception.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
 
 /**
  * Repository to manage program data
@@ -44,5 +49,33 @@ export class ProgramRepository {
       }
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
+  }
+
+  async getAll(
+    pagination?: Pagination,
+  ): Promise<AppResult<PaginatedResult<Program>>> {
+    const page = pagination?.page ?? 1
+    const pageSize = pagination?.pageSize ?? 10
+    this.logger.debug('start getting all programs')
+    const [rows, total] = await this.repository
+      .createQueryBuilder('programs')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy({
+        'programs.created_at': 'DESC',
+      })
+      .getManyAndCount()
+    this.logger.debug('programs obtained')
+    const programs = rows.map((it) => it.toDomain())
+    return AppResult.success(
+      new PaginatedResult({
+        data: programs,
+        pagination: new PaginationResult({
+          page: page,
+          pageSize: pageSize,
+          total: total,
+        }),
+      }),
+    )
   }
 }
