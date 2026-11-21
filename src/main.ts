@@ -7,6 +7,7 @@ import { FailedResponse, SuccessResponse } from './common/app-response.js'
 import { InvalidRequestException } from './common/app-exception.js'
 import { InvalidRequestExceptionFilter } from './common/exception-filter/invalid-request.exception-filter.js'
 import { UnauthorizedExceptionFilter } from './common/exception-filter/unauthorized.exception-filter.js'
+import { PaginationOut } from './common/pagination.js'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,6 +17,7 @@ async function bootstrap() {
   })
   app.useGlobalPipes(
     new ValidationPipe({
+      transform: true,
       errorHttpStatusCode: 422,
       exceptionFactory: (errors) =>
         InvalidRequestException.fromValidationPipe(errors),
@@ -51,7 +53,7 @@ async function bootstrap() {
     .build()
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config, {
-      extraModels: [FailedResponse, SuccessResponse],
+      extraModels: [FailedResponse, SuccessResponse, PaginationOut],
     })
   SwaggerModule.setup('docs', app, documentFactory)
 

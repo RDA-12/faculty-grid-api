@@ -7,6 +7,11 @@ import { NotFoundException } from '../../common/app-exception.js'
 import { FacultyRepository } from './faculty.repository.js'
 import { FacultyDBEntity } from '../../common/database/entities/faculty.entity.js'
 import { Faculty } from '../entities/faculty.entity.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
 
 describe('FacultyRepository', () => {
   let userDb: UserDBEntity
@@ -70,22 +75,55 @@ describe('FacultyRepository', () => {
   })
 
   describe('getAll', () => {
-    const expected: Faculty[] = []
+    let expected: Faculty[] = []
 
     beforeEach(async () => {
+      const newData: Faculty[] = []
       for (var i = 0; i < 5; i++) {
         const facultyInsertDB = new FacultyDBEntity()
         facultyInsertDB.name = `faculty ${i}`
         facultyInsertDB.createdBy = userDb.id
+        facultyInsertDB.createdAt = new Date(2026, 11, 1 + i)
         const facultyDB = await dataSource.manager.save(facultyInsertDB)
-        expected.push(facultyDB.toDomain())
+        newData.unshift(facultyDB.toDomain())
       }
+      expected = newData
     })
 
     it('should return correct faculties', async () => {
       const result = await facultyRepository.getAll()
 
-      expect(result).toStrictEqual(AppResult.success(expected))
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: expected,
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 10,
+              total: 5,
+            }),
+          }),
+        ),
+      )
+    })
+
+    it('should return correct paginated faculties', async () => {
+      const result = await facultyRepository.getAll(
+        new Pagination({ pageSize: 1 }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: [expected[0]],
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 1,
+              total: 5,
+            }),
+          }),
+        ),
+      )
     })
   })
 

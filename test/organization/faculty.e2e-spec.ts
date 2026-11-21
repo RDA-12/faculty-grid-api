@@ -81,15 +81,12 @@ describe('Faculty', () => {
   })
 
   describe('/GET faculties', () => {
-    const expected: unknown[] = []
+    let expected: unknown[] = []
 
     beforeAll(async () => {
       await dataSource.query(
         `TRUNCATE TABLE "faculties" RESTART IDENTITY CASCADE`,
       )
-    })
-
-    beforeEach(async () => {
       for (var i = 0; i < 5; i++) {
         const response = await request(app.getHttpServer())
           .post('/faculties')
@@ -97,7 +94,7 @@ describe('Faculty', () => {
           .send({
             name: `faculty ${i}`,
           })
-        expected.push(response.body.data)
+        expected.unshift(response.body.data)
       }
     })
 
@@ -110,6 +107,28 @@ describe('Faculty', () => {
       expect(response.body).toMatchObject({
         status: 200,
         data: expected,
+        pagination: {
+          total: 5,
+          page: 1,
+          pageSize: 10,
+        },
+      })
+    })
+
+    it('should return correct data when pagination used', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/faculties?page=2&pageSize=1')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: [expected[1]],
+        pagination: {
+          total: 5,
+          page: 2,
+          pageSize: 1,
+        },
       })
     })
 

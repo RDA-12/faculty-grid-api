@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Post,
+  Query,
 } from '@nestjs/common'
 import {
   CreateFacultyParams,
@@ -26,6 +27,11 @@ import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
 import { ApiNoContentResponse } from '@nestjs/swagger'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 import { Anyone } from '../../authz/decorators/anyone.decorator.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationQuery,
+} from '../../common/pagination.js'
 
 @Controller('faculties')
 export class FacultyController {
@@ -76,16 +82,21 @@ export class FacultyController {
   })
   @Anyone()
   @Get()
-  async getFaculties(@CurrentUser() _user: User) {
+  async getFaculties(
+    @CurrentUser() _user: User,
+    @Query() params?: PaginationQuery,
+  ): Promise<AppResult<PaginatedResult<FacultyOut>>> {
     this.logger.debug('delegating get faculties to GetFacultiesUseCase')
-    const result = await this.GetFacultiesUseCase.execute()
+    const result = await this.GetFacultiesUseCase.execute(
+      new Pagination(params ?? {}),
+    )
     if (result.exception) {
       this.logger.debug('failed to get faculties')
       return AppResult.failed(result.exception)
     }
     this.logger.debug('faculties obtained')
     return AppResult.success(
-      result.data!.map((it) => FacultyOut.fromFaculty(it)),
+      result.data!.mapData((it) => FacultyOut.fromFaculty(it)),
     )
   }
 

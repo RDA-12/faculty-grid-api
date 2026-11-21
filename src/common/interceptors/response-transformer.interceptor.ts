@@ -5,8 +5,13 @@ import {
   StreamableFile,
 } from '@nestjs/common'
 import { AppResult } from '../app-result.js'
-import { FailedResponse, SuccessResponse } from '../app-response.js'
+import {
+  FailedResponse,
+  PaginatedSucessResponse,
+  SuccessResponse,
+} from '../app-response.js'
 import { map, Observable } from 'rxjs'
+import { PaginatedResult } from '../pagination.js'
 
 /**
  * Transform each response (which mainly AppResult) into formatted response
@@ -35,6 +40,13 @@ export class ResponseTransformerIntereceptor implements NestInterceptor {
 
         if (result instanceof AppResult) {
           if (result.data) {
+            if (result.data instanceof PaginatedResult) {
+              return new PaginatedSucessResponse(
+                response.statusCode,
+                result.data.data,
+                result.data.pagination,
+              )
+            }
             return new SuccessResponse(response.statusCode, result.data)
           }
           if (result.exception) {

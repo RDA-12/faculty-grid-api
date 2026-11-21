@@ -4,7 +4,10 @@ import {
   ApiProperty,
   ApiResponse,
   getSchemaPath,
+  ReferenceObject,
+  SchemaObject,
 } from '@nestjs/swagger'
+import { PaginationOut } from './pagination.js'
 
 /**
  * Base response data
@@ -30,6 +33,16 @@ export class SuccessResponse<T> extends AppResponse<T> {
   /** data that will be returned to client */
   @ApiProperty()
   readonly data: T | null
+}
+
+export class PaginatedSucessResponse<T> extends SuccessResponse<T[]> {
+  constructor(status: number, data: T[], pagination: PaginationOut) {
+    super(status, data)
+    this.pagination = pagination
+  }
+
+  @ApiProperty()
+  readonly pagination: PaginationOut
 }
 
 export class FailedResponse<T> extends AppResponse<T> {
@@ -104,6 +117,27 @@ export const ApiSuccessResponse = <TModel extends Type<any>>({
   description,
   isArray = false,
 }: ApiSuccessResponseArgs<TModel>) => {
+  let properties: Record<string, SchemaObject | ReferenceObject> = {
+    status: {
+      example: status,
+    },
+  }
+  if (isArray) {
+    properties.data = {
+      type: 'array',
+      items: {
+        $ref: getSchemaPath(model),
+      },
+    }
+    properties.pagination = {
+      $ref: getSchemaPath(PaginationOut),
+    }
+  } else {
+    properties.data = {
+      $ref: getSchemaPath(model),
+    }
+  }
+
   return applyDecorators(
     ApiExtraModels(model),
     ApiResponse({
@@ -128,6 +162,9 @@ export const ApiSuccessResponse = <TModel extends Type<any>>({
                 : {
                     $ref: getSchemaPath(model),
                   },
+              pagination: {
+                $ref: getSchemaPath(PaginationOut),
+              },
             },
           },
         ],

@@ -1,22 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { AppResult } from '../../common/app-result.js'
-import { NoParamPromiseUseCase } from '../../common/base-use-case.js'
 import { Faculty } from '../entities/faculty.entity.js'
 import { FacultyRepository } from '../repositories/faculty.repository.js'
+import { PaginatedResult, Pagination } from '../../common/pagination.js'
+import { PromiseUseCase } from '../../common/base-use-case.js'
 
 /**
  * Use case to get all faculties
  */
 @Injectable()
-export class GetFacultiesUseCase implements NoParamPromiseUseCase<Faculty[]> {
+export class GetFacultiesUseCase implements PromiseUseCase<
+  Pagination,
+  PaginatedResult<Faculty>
+> {
   constructor(private readonly facultyRepository: FacultyRepository) {
     this.logger = new Logger('GetFacultiesUseCase')
   }
 
   private readonly logger: Logger
 
-  execute(): Promise<AppResult<Faculty[]>> {
+  execute(params?: Pagination): Promise<AppResult<PaginatedResult<Faculty>>> {
     this.logger.debug('delegating get all faculties to FacultyRepository')
-    return this.facultyRepository.getAll()
+    return this.facultyRepository.getAll(params)
   }
 }

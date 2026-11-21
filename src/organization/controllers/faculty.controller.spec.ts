@@ -12,6 +12,11 @@ import {
 import { FacultyController } from './faculty.controller.js'
 import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
 
 describe('FacultyController', () => {
   const user = new User({
@@ -24,6 +29,14 @@ describe('FacultyController', () => {
     name: 'faculty name',
   })
   const facultyOut = FacultyOut.fromFaculty(faculty)
+  const paginatedResult = new PaginatedResult({
+    data: [faculty],
+    pagination: new PaginationResult({
+      total: 10,
+      page: 1,
+      pageSize: 0,
+    }),
+  })
   let createFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let getFacultiesUseCase: { execute: ReturnType<typeof vi.fn> }
   let deleteFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
@@ -42,7 +55,9 @@ describe('FacultyController', () => {
         {
           provide: GetFacultiesUseCase,
           useValue: {
-            execute: vi.fn().mockResolvedValue(AppResult.success([faculty])),
+            execute: vi
+              .fn()
+              .mockResolvedValue(AppResult.success(paginatedResult)),
           },
         },
         {
@@ -110,10 +125,32 @@ describe('FacultyController', () => {
   })
 
   describe('getFaculties', () => {
+    it('calls GetFacultiesUseCase once', async () => {
+      await facultyController.getFaculties(user)
+
+      expect(getFacultiesUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        new Pagination({}),
+      )
+    })
+
+    it('calls GetFacultiesUseCase once with pagination', async () => {
+      const pagination = new Pagination({ page: 10 })
+
+      await facultyController.getFaculties(user, pagination)
+
+      expect(getFacultiesUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        pagination,
+      )
+    })
+
     it('should return correct faculties when GetFacultiesUseCase success', async () => {
       const result = await facultyController.getFaculties(user)
 
-      expect(result).toStrictEqual(AppResult.success([facultyOut]))
+      expect(result).toStrictEqual(
+        AppResult.success(
+          paginatedResult.mapData((it) => FacultyOut.fromFaculty(it)),
+        ),
+      )
     })
 
     it('should returns failed when GetFacultiesUseCase failed', async () => {

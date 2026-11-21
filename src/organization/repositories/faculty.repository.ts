@@ -7,6 +7,11 @@ import {
   NotFoundException,
   UnexpectedException,
 } from '../../common/app-exception.js'
+import {
+  PaginatedResult,
+  Pagination,
+  PaginationResult,
+} from '../../common/pagination.js'
 
 /**
  * Repository manage faculty data
@@ -47,11 +52,32 @@ export class FacultyRepository {
     }
   }
 
-  async getAll(): Promise<AppResult<Faculty[]>> {
+  async getAll(
+    pagination?: Pagination,
+  ): Promise<AppResult<PaginatedResult<Faculty>>> {
+    const page = pagination?.page ?? 1
+    const pageSize = pagination?.pageSize ?? 10
     this.logger.debug('start getting all faculties')
-    const rows = await this.repository.find()
+    const [rows, total] = await this.repository
+      .createQueryBuilder('faculties')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy({
+        'faculties.created_at': 'DESC',
+      })
+      .getManyAndCount()
     this.logger.debug('faculties obtained')
-    return AppResult.success(rows.map((it) => it.toDomain()))
+    const faculties = rows.map((it) => it.toDomain())
+    return AppResult.success(
+      new PaginatedResult({
+        data: faculties,
+        pagination: new PaginationResult({
+          page: page,
+          pageSize: pageSize,
+          total: total,
+        }),
+      }),
+    )
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {

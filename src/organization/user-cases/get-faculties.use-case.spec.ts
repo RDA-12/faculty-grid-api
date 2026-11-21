@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import { Faculty } from '../entities/faculty.entity.js'
 import { FacultyRepository } from '../repositories/faculty.repository.js'
 import { GetFacultiesUseCase } from './get-faculties.use-case.js'
+import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
 
 describe('GetFacultiesUseCase', () => {
   const faculties = Array.from({ length: 5 }, (_, index) => {
@@ -11,6 +12,14 @@ describe('GetFacultiesUseCase', () => {
       id: `${index}`,
       name: `Faculty ${index}`,
     })
+  })
+  const paginated = new PaginatedResult({
+    data: faculties,
+    pagination: new PaginationResult({
+      page: 1,
+      pageSize: 10,
+      total: 5,
+    }),
   })
   let facultyRepository: {
     getAll: ReturnType<typeof vi.fn>
@@ -23,7 +32,7 @@ describe('GetFacultiesUseCase', () => {
         {
           provide: FacultyRepository,
           useValue: {
-            getAll: vi.fn().mockResolvedValue(AppResult.success(faculties)),
+            getAll: vi.fn().mockResolvedValue(AppResult.success(paginated)),
           },
         },
         GetFacultiesUseCase,
@@ -43,7 +52,7 @@ describe('GetFacultiesUseCase', () => {
   it('should return success with correct faculty when FacultyRepository.getAll success', async () => {
     const result = await getFacultiesUseCase.execute()
 
-    expect(result).toStrictEqual(AppResult.success(faculties))
+    expect(result).toStrictEqual(AppResult.success(paginated))
   })
 
   it('should return failed with correct exception when FacultyRepository.getAll failed', async () => {

@@ -13,6 +13,7 @@ export function createTestingApp(moduleRef: TestingModule): INestApplication {
   const app = moduleRef.createNestApplication()
   app.useGlobalPipes(
     new ValidationPipe({
+      transform: true,
       errorHttpStatusCode: 422,
       exceptionFactory: (errors) =>
         InvalidRequestException.fromValidationPipe(errors),
