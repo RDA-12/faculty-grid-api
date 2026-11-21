@@ -7,4 +7,8 @@ export class ProgramPolicy {
   create(user: AuthzUser | null) {
     return user?.isA(Role.admin) ?? false
   }
+
+  delete(user: AuthzUser | null) {
+    return user?.isA(Role.admin) ?? false
+  }
 }

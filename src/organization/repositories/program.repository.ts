@@ -81,4 +81,19 @@ export class ProgramRepository {
       }),
     )
   }
+
+  async deleteById(id: string): Promise<AppResult<null>> {
+    this.logger.debug('start get program')
+    const programDb = await this.repository.findOne({
+      where: { id: id },
+    })
+    if (!programDb) {
+      this.logger.debug('program not found. skip deletion')
+      return AppResult.success(null)
+    }
+    this.logger.debug('start deleting program')
+    await this.repository.softRemove(programDb)
+    this.logger.debug('program deleted')
+    return AppResult.success(null)
+  }
 }

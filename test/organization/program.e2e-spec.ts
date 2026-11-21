@@ -203,4 +203,67 @@ describe('Program', () => {
       excpectResponseInvalidAuth(response)
     })
   })
+
+  describe('/DELETE programs/:id', () => {
+    let toBeDeleted: { id: string }
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "programs" RESTART IDENTITY CASCADE`,
+      )
+    })
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const response = await request(app.getHttpServer())
+          .post('/programs')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .send({
+            name: `program ${i}`,
+            degreeLevel: 'bachelor',
+            facultyId: faculty.id,
+          })
+        if (i === 0) {
+          toBeDeleted = response.body.data
+        }
+      }
+    })
+
+    it('should return 204 when deleting correct program', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/programs/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(204)
+      expect(response.body).toStrictEqual({})
+    })
+
+    it('should return 204 when deleting non-existing program', async () => {
+      await request(app.getHttpServer())
+        .delete(`/programs/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+      const response = await request(app.getHttpServer())
+        .delete(`/programs/${toBeDeleted.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(204)
+      expect(response.body).toStrictEqual({})
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/programs/nothing`,
+      )
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/programs/nothing')
+        .set('Authorization', 'Bearer lol')
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
 })

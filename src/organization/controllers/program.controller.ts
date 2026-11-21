@@ -1,5 +1,15 @@
 import { CurrentUser } from '@nestjs/authentication'
-import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Logger,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { User } from '../../user/entities/user.entity.js'
 import { CreateProgramDTO, ProgramOut, ProgramsQuery } from './program.dto.js'
 import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
@@ -20,12 +30,15 @@ import {
   GetProgramsParams,
   GetProgramsUseCase,
 } from '../user-cases/get-programs.use-case.js'
+import { ApiNoContentResponse } from '@nestjs/swagger'
+import { DeleteProgramUseCase } from '../user-cases/delete-program.use-case.js'
 
 @Controller('programs')
 export class ProgramController {
   constructor(
     private readonly createProgramUseCase: CreateProgramUseCase,
     private readonly getProgramsUseCase: GetProgramsUseCase,
+    private readonly deleteProgramUseCase: DeleteProgramUseCase,
   ) {
     this.logger = new Logger('ProgramController')
   }
@@ -91,5 +104,18 @@ export class ProgramController {
     return AppResult.success(
       result.data!.mapData((it) => ProgramOut.fromProgram(it)),
     )
+  }
+
+  @ApiNoContentResponse({ description: 'Program successfully deleted' })
+  @RequiredPermisson(ProgramPolicy, 'delete')
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteProgram(@CurrentUser() _user: User, @Param('id') id: string) {
+    this.logger.debug('delegating delete program to DeleteProgramUseCase')
+    const result = await this.deleteProgramUseCase.execute(id)
+    if (result.exception) {
+      this.logger.debug('failed to delete program')
+      return result
+    }
   }
 }

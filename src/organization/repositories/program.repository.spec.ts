@@ -198,4 +198,33 @@ describe('ProgramRepository', () => {
       )
     })
   })
+
+  describe('deleteById', () => {
+    let toBeDeleted: ProgramDBEntity
+
+    beforeEach(async () => {
+      for (var i = 0; i < 5; i++) {
+        const programInsertDB = new ProgramDBEntity()
+        programInsertDB.name = `program ${i}`
+        programInsertDB.degreeLevel = ProgramDegreeLevel.bachelor
+        programInsertDB.createdBy = userDb.id
+        programInsertDB.facultyId = facultyDb.id
+        const programDB = await dataSource.manager.save(programInsertDB)
+        if (i === i) {
+          toBeDeleted = programDB
+        }
+      }
+    })
+
+    it('should soft remove correct program', async () => {
+      const result = await programRepository.deleteById(toBeDeleted.id)
+
+      expect(result).toStrictEqual(AppResult.success(null))
+
+      const rows = await dataSource.manager.find(ProgramDBEntity, {
+        withDeleted: true,
+      })
+      expect(rows.map((it) => it.id).includes(toBeDeleted.id)).toBeTruthy()
+    })
+  })
 })

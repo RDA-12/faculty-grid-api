@@ -19,6 +19,7 @@ import {
   GetProgramsParams,
   GetProgramsUseCase,
 } from '../user-cases/get-programs.use-case.js'
+import { DeleteProgramUseCase } from '../user-cases/delete-program.use-case.js'
 
 describe('ProgramController', () => {
   const user = new User({
@@ -43,6 +44,7 @@ describe('ProgramController', () => {
   const programOut = ProgramOut.fromProgram(program)
   let createProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let getProgramsUseCase: { execute: ReturnType<typeof vi.fn> }
+  let deleteProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let programController: ProgramController
 
   beforeAll(async () => {
@@ -64,6 +66,12 @@ describe('ProgramController', () => {
           },
         },
         {
+          provide: DeleteProgramUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(null)),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {},
         },
@@ -72,6 +80,7 @@ describe('ProgramController', () => {
 
     createProgramUseCase = moduleRef.get(CreateProgramUseCase)
     getProgramsUseCase = moduleRef.get(GetProgramsUseCase)
+    deleteProgramUseCase = moduleRef.get(DeleteProgramUseCase)
 
     programController = moduleRef.get(ProgramController)
   })
@@ -171,6 +180,31 @@ describe('ProgramController', () => {
       )
 
       const result = await programController.getPrograms(user)
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('deleteProgram', () => {
+    it('calls DeleteProgramUseCase once', async () => {
+      await programController.deleteProgram(user, 'id')
+
+      expect(deleteProgramUseCase.execute).toHaveBeenCalledExactlyOnceWith('id')
+    })
+
+    it('should return undefined when DeleteProgramUseCase success', async () => {
+      const result = await programController.deleteProgram(user, 'id')
+
+      expect(result).toBeUndefined()
+    })
+
+    it('should returns failed when DeleteProgramUseCase failed', async () => {
+      const e = AppException.test()
+      vi.spyOn(deleteProgramUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await programController.deleteProgram(user, 'id')
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

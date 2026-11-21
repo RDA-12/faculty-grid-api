@@ -8,6 +8,7 @@ import { ProgramController } from './controllers/program.controller.js'
 import { ProgramRepository } from './repositories/program.repository.js'
 import { CreateProgramUseCase } from './user-cases/create-program.use-case.js'
 import { GetProgramsUseCase } from './user-cases/get-programs.use-case.js'
+import { DeleteProgramUseCase } from './user-cases/delete-program.use-case.js'
 
 /**
  * Handle organization master data, e.g. faculty & program
@@ -22,6 +23,7 @@ import { GetProgramsUseCase } from './user-cases/get-programs.use-case.js'
     DeleteFacultyUseCase,
     CreateProgramUseCase,
     GetProgramsUseCase,
+    DeleteProgramUseCase,
   ],
 })
 export class OrganizationModule {}
