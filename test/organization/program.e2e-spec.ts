@@ -172,6 +172,23 @@ describe('Program', () => {
       })
     })
 
+    it('should return correct data when search used', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/programs?search=0')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: [expected[4]],
+        pagination: {
+          total: 1,
+          page: 1,
+          pageSize: 10,
+        },
+      })
+    })
+
     it('should return correct data when filtered by faculty', async () => {
       const response = await request(app.getHttpServer())
         .get('/programs?facultyId=lol')

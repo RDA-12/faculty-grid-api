@@ -66,6 +66,13 @@ describe('GetProgramsUseCase', () => {
     expect(facultyRepository.getAll).toHaveBeenCalledExactlyOnceWith(params)
   })
 
+  it('should calls ProgramRepository.getAll once with search filter', async () => {
+    const params = new GetProgramsParams({ facultyId: 'search' })
+    await getProgramsUseCase.execute(params)
+
+    expect(facultyRepository.getAll).toHaveBeenCalledExactlyOnceWith(params)
+  })
+
   it('should return success with correct faculty when ProgramRepository.getAll success', async () => {
     const result = await getProgramsUseCase.execute()
 

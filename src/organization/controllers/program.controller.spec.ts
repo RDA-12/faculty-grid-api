@@ -163,6 +163,16 @@ describe('ProgramController', () => {
       )
     })
 
+    it('calls GetProgramsUseCase once with search filter', async () => {
+      const query = new ProgramsQuery({ search: 'search' })
+
+      await programController.getPrograms(user, query)
+
+      expect(getProgramsUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        new GetProgramsParams({ search: query.search }),
+      )
+    })
+
     it('should return correct faculties when GetProgramsUseCase success', async () => {
       const result = await programController.getPrograms(user)
 

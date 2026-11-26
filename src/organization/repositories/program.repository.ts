@@ -56,8 +56,14 @@ export class ProgramRepository {
     const query = this.repository.createQueryBuilder('programs')
     if (params?.facultyId) {
       this.logger.debug('filter programs by facultyId')
-      query.where('programs.faculty_id = :facultyId', {
+      query.andWhere('programs.faculty_id = :facultyId', {
         facultyId: params.facultyId,
+      })
+    }
+    if (params?.search) {
+      this.logger.debug('filter programs by its name')
+      query.andWhere('programs.name LIKE :search', {
+        search: `%${params.search}%`,
       })
     }
     this.logger.debug('start getting all programs')

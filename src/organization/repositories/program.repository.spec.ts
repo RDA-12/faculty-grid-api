@@ -197,6 +197,25 @@ describe('ProgramRepository', () => {
         ),
       )
     })
+
+    it('should return correct filtered programs by search', async () => {
+      const result = await programRepository.getAll(
+        new GetProgramsParams({ search: '0' }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: [expected[4]],
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 10,
+              total: 1,
+            }),
+          }),
+        ),
+      )
+    })
   })
 
   describe('deleteById', () => {

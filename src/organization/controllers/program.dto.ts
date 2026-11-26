@@ -63,4 +63,9 @@ export class ProgramsQuery extends PaginationQuery {
   @IsString()
   @IsOptional()
   facultyId?: string
+
+  @ApiProperty({ description: 'Filter program by its name', required: false })
+  @IsString()
+  @IsOptional()
+  search?: string
 }

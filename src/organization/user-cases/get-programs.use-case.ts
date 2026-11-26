@@ -6,12 +6,19 @@ import { ProgramRepository } from '../repositories/program.repository.js'
 import { AppResult } from '../../common/app-result.js'
 
 export class GetProgramsParams extends Pagination {
-  constructor({ page, pageSize, facultyId }: Partial<GetProgramsParams>) {
+  constructor({
+    page,
+    pageSize,
+    facultyId,
+    search,
+  }: Partial<GetProgramsParams>) {
     super({ page, pageSize })
     this.facultyId = facultyId
+    this.search = search
   }
 
   readonly facultyId?: string
+  readonly search?: string
 }
 
 /**
