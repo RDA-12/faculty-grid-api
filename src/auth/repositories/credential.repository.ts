@@ -25,7 +25,7 @@ export class CredentialRepository {
    * Return UserCredential for provided userId
    */
   async getByUserId(userId: string): Promise<AppResult<UserCredential>> {
-    this.logger.debug('starts getting user credential by its id')
+    this.logger.debug('starts getting user credential by its id', { userId })
     const dbData = await this.repository.findOne({
       where: {
         user: {
@@ -44,7 +44,7 @@ export class CredentialRepository {
         ),
       )
     }
-    this.logger.debug('credential found')
+    this.logger.debug('credential found', { data: dbData })
     return AppResult.success(dbData.toDomain())
   }
 
@@ -58,9 +58,12 @@ export class CredentialRepository {
       db.userId = userId
       db.hashedPassword = hashedPassword
 
-      this.logger.debug('start saving new user credential')
+      this.logger.debug('start saving new user credential', {
+        userId,
+        hashedPassword,
+      })
       const credentialDb = await this.repository.save(db)
-      this.logger.debug('credential saved')
+      this.logger.debug('credential saved', { data: credentialDb })
 
       return AppResult.success(credentialDb.toDomain())
     } catch (error) {
@@ -73,6 +76,7 @@ export class CredentialRepository {
           )
         }
       }
+      this.logger.error('failed to save credential', { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }

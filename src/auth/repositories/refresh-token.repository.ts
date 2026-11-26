@@ -52,10 +52,10 @@ export class RefreshTokenRepository implements RefreshTokenStore {
   }
 
   async getRefreshToken(id: string): Promise<RefreshTokenRecord | undefined> {
-    this.logger.debug('start get refresh token by its id')
+    this.logger.debug('start get refresh token by its id', { id })
     const row = await this.repository.findOneBy({ id })
     if (row) {
-      this.logger.debug('refresh token found')
+      this.logger.debug('refresh token found', { row })
       return this.createRecord(row)
     }
     this.logger.debug('refresh token not found')
@@ -64,29 +64,31 @@ export class RefreshTokenRepository implements RefreshTokenStore {
 
   async saveRefreshToken(record: RefreshTokenRecord): Promise<void> {
     const dbData = this.createDb(record)
-    this.logger.debug('start saving new refresh token')
+    this.logger.debug('start saving new refresh token', { record })
     await this.repository.save(dbData)
     this.logger.debug('refresh token saved')
   }
 
   async markRefreshTokenUsed(id: string, at: Date): Promise<boolean> {
-    this.logger.debug('start marking refresh token as used')
+    this.logger.debug('start marking refresh token as used', { id, at })
     const result = await this.repository.update(
       { id: id, usedAt: IsNull() },
       { usedAt: at },
     )
-    this.logger.debug('refresh token marked')
+    this.logger.debug('refresh token marked', { result: result })
     return (result.affected ?? 0) === 1
   }
 
   async revokeRefreshTokenFamily(familyId: string): Promise<void> {
-    this.logger.debug('start revoke refresh token family')
+    this.logger.debug('start revoke refresh token family', { familyId })
     await this.repository.update({ familyId: familyId }, { revoked: true })
     this.logger.debug('refresh token family revoked')
   }
 
   async isRefreshTokenFamilyRevoked(familyId: string): Promise<boolean> {
-    this.logger.debug('start check refresh token family revoked status')
+    this.logger.debug('start check refresh token family revoked status', {
+      familyId,
+    })
     const result = await this.repository.findOneBy({
       familyId: familyId,
       revoked: true,
@@ -100,7 +102,7 @@ export class RefreshTokenRepository implements RefreshTokenStore {
   }
 
   async revokeUserRefreshTokens(userId: string): Promise<void> {
-    this.logger.debug('start revoke user refresh token')
+    this.logger.debug('start revoke user refresh token', { userId })
     await this.repository.update({ userId: userId }, { revoked: true })
     this.logger.debug('user refresh token revoked')
   }

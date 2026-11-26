@@ -38,7 +38,9 @@ export class GetProgramsUseCase implements PromiseUseCase<
   execute(
     params?: GetProgramsParams,
   ): Promise<AppResult<PaginatedResult<Program>>> {
-    this.logger.debug('delegating get programs to ProgramRepository')
+    this.logger.debug('delegating get programs to ProgramRepository', {
+      params,
+    })
     return this.programRepository.getAll(params)
   }
 }

@@ -19,7 +19,7 @@ export class RefreshAccessTokenUseCase implements PromiseUseCase<
   private readonly logger: Logger
 
   execute(params: string): Promise<AppResult<UserToken>> {
-    this.logger.debug('delegate refresh access token to JWT')
+    this.logger.debug('delegate refresh access token to JWT', { params })
     return this.jwt.refresh(params)
   }
 }

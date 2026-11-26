@@ -37,7 +37,7 @@ export class CreateUserUseCase implements PromiseUseCase<
   private readonly logger: Logger
 
   execute(params: CreateUserParams): Promise<AppResult<User>> {
-    this.logger.debug('delegate user creation for UserRepository')
+    this.logger.debug('delegate user creation for UserRepository', { params })
     return this.userRepository.save(params)
   }
 }

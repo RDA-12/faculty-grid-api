@@ -33,7 +33,9 @@ export class CreateFacultyUseCase implements PromiseUseCase<
   private readonly logger: Logger
 
   execute(params: CreateFacultyParams): Promise<AppResult<Faculty>> {
-    this.logger.debug('delegating save new faculty to FacultyRepository')
+    this.logger.debug('delegating save new faculty to FacultyRepository', {
+      params,
+    })
     return this.facultyRepository.save(params.name, params.user.id)
   }
 }

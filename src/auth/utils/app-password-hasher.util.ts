@@ -18,12 +18,15 @@ export class AppPasswordHasher {
     try {
       this.logger.debug(
         'delegate verifying password to PasswordHasher from nestjs',
+        { password, hashedPassword: encoded },
       )
       const verified = await this.nestPasswordHasher.verify(password, encoded)
-      this.logger.debug('password verification success')
+      this.logger.debug('password verification success', { verified })
       return AppResult.success(verified)
     } catch (error) {
-      this.logger.error(`failed to verify password: ${error as Error}`)
+      this.logger.error(`failed to verify password: ${error as Error}`, {
+        error,
+      })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
@@ -32,12 +35,13 @@ export class AppPasswordHasher {
     try {
       this.logger.debug(
         'delegate hashing password to PasswordHasher from nestjs',
+        { password },
       )
       const hashed = await this.nestPasswordHasher.hash(password)
-      this.logger.debug('password hashed')
+      this.logger.debug('password hashed', { hashedPassword: hashed })
       return AppResult.success(hashed)
     } catch (error) {
-      this.logger.error(`failed to hash password: ${error as Error}`)
+      this.logger.error(`failed to hash password: ${error as Error}`, { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }

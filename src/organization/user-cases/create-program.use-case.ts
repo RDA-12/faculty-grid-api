@@ -41,7 +41,9 @@ export class CreateProgramUseCase implements PromiseUseCase<
   private readonly logger: Logger
 
   execute(params: CreateProgramParams): Promise<AppResult<Program>> {
-    this.logger.debug('delegating save new faculty to ProgramRepository')
+    this.logger.debug('delegating save new faculty to ProgramRepository', {
+      params,
+    })
     return this.programRepository.save(params)
   }
 }

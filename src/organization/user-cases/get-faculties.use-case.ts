@@ -32,7 +32,9 @@ export class GetFacultiesUseCase implements PromiseUseCase<
   execute(
     params?: GetFacultiesParams,
   ): Promise<AppResult<PaginatedResult<Faculty>>> {
-    this.logger.debug('delegating get all faculties to FacultyRepository')
+    this.logger.debug('delegating get all faculties to FacultyRepository', {
+      params,
+    })
     return this.facultyRepository.getAll(params)
   }
 }

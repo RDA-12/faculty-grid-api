@@ -16,7 +16,9 @@ export class GetUserByEmailUseCase implements PromiseUseCase<string, User> {
   private readonly logger: Logger
 
   execute(params: string): Promise<AppResult<User>> {
-    this.logger.debug('delegate get user by email to UserRepository')
+    this.logger.debug('delegate get user by email to UserRepository', {
+      params,
+    })
     return this.userRepository.getByEmail(params)
   }
 }

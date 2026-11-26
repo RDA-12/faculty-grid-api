@@ -26,11 +26,11 @@ export class ProgramRepository {
 
   async save(params: CreateProgramParams): Promise<AppResult<Program>> {
     try {
-      this.logger.debug('start saving new program')
+      this.logger.debug('start saving new program', { params })
       const programDb = await this.repository.save(
         ProgramDBEntity.fromParams(params),
       )
-      this.logger.debug('program saved')
+      this.logger.debug('program saved', { data: programDb })
       return AppResult.success(programDb.toDomain())
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -44,6 +44,7 @@ export class ProgramRepository {
           )
         }
       }
+      this.logger.error('failed to save program', { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
@@ -66,7 +67,7 @@ export class ProgramRepository {
         search: `%${params.search}%`,
       })
     }
-    this.logger.debug('start getting all programs')
+    this.logger.debug('start getting all programs', { params })
     const [rows, total] = await query
       .skip((page - 1) * pageSize)
       .take(pageSize)
@@ -74,7 +75,7 @@ export class ProgramRepository {
         'programs.created_at': 'DESC',
       })
       .getManyAndCount()
-    this.logger.debug('programs obtained')
+    this.logger.debug('programs obtained', { rows, total })
     const programs = rows.map((it) => it.toDomain())
     return AppResult.success(
       new PaginatedResult({
@@ -89,7 +90,7 @@ export class ProgramRepository {
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {
-    this.logger.debug('start get program')
+    this.logger.debug('start get program', { id })
     const programDb = await this.repository.findOne({
       where: { id: id },
     })

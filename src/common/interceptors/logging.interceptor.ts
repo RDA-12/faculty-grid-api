@@ -30,7 +30,7 @@ export class LoggingInterceptor implements NestInterceptor {
       requestCtx.body = request.body
     }
 
-    this.logger.debug('new request received', requestCtx)
+    this.logger.debug('new request received', { requestCtx })
 
     return next.handle().pipe(
       tap({

@@ -62,7 +62,10 @@ export class FacultyController {
     @CurrentUser() user: User,
     @Body() body: CreateFacultyDTO,
   ): Promise<AppResult<FacultyOut>> {
-    this.logger.debug('delegating creating new faculty to CreateFacultyUseCase')
+    this.logger.debug(
+      'delegating creating new faculty to CreateFacultyUseCase',
+      { body },
+    )
     const result = await this.createFacultyUseCase.execute(
       new CreateFacultyParams({
         name: body.name,
@@ -70,10 +73,12 @@ export class FacultyController {
       }),
     )
     if (result.exception) {
-      this.logger.debug('failed to create new faculty')
+      this.logger.debug('failed to create new faculty', {
+        error: result.exception,
+      })
       return AppResult.failed(result.exception)
     }
-    this.logger.debug('faculty created')
+    this.logger.debug('faculty created', { data: result.data })
     return AppResult.success(FacultyOut.fromFaculty(result.data!))
   }
 
@@ -89,15 +94,17 @@ export class FacultyController {
     @CurrentUser() _user: User,
     @Query() params?: GetFacultiesQuery,
   ): Promise<AppResult<PaginatedResult<FacultyOut>>> {
-    this.logger.debug('delegating get faculties to GetFacultiesUseCase')
+    this.logger.debug('delegating get faculties to GetFacultiesUseCase', {
+      params,
+    })
     const result = await this.GetFacultiesUseCase.execute(
       new GetFacultiesParams(params ?? {}),
     )
     if (result.exception) {
-      this.logger.debug('failed to get faculties')
+      this.logger.debug('failed to get faculties', { error: result.exception })
       return AppResult.failed(result.exception)
     }
-    this.logger.debug('faculties obtained')
+    this.logger.debug('faculties obtained', { data: result.data })
     return AppResult.success(
       result.data!.mapData((it) => FacultyOut.fromFaculty(it)),
     )
@@ -108,11 +115,14 @@ export class FacultyController {
   @Delete(':id')
   @HttpCode(204)
   async deleteFaculty(@CurrentUser() _user: User, @Param('id') id: string) {
-    this.logger.debug('delegating delete faculty to DeleteFacultyUseCase')
+    this.logger.debug('delegating delete faculty to DeleteFacultyUseCase', {
+      id,
+    })
     const result = await this.deleteFacultyUseCase.execute(id)
     if (result.exception) {
-      this.logger.debug('failed to delete faculty')
+      this.logger.debug('failed to delete faculty', { error: result.exception })
       return result
     }
+    this.logger.debug('faculty deleted')
   }
 }

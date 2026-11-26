@@ -30,7 +30,9 @@ export class AssignRoleUseCase implements PromiseUseCase<
   private readonly logger: Logger
 
   execute(params: AssignRoleParams): Promise<AppResult<UserRoles>> {
-    this.logger.debug('delegating saving assigned role to UserRoleRepository')
+    this.logger.debug('delegating saving assigned role to UserRoleRepository', {
+      params,
+    })
     return this.userRoleRepository.save(params.userId, params.role)
   }
 }

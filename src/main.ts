@@ -35,6 +35,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: new ConsoleLogger({
       prefix: 'FacultyGrid',
+      redact: {
+        paths: [
+          'password',
+          'accessToken',
+          'refreshToken',
+          'apiKey',
+          'hashedPassword',
+          'hashed',
+        ],
+      },
     }),
   })
   configureApp(app)

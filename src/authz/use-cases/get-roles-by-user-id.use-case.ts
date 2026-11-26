@@ -21,6 +21,7 @@ export class GetRolesByUserIdUseCase implements PromiseUseCase<
   execute(params: string): Promise<AppResult<UserRoles>> {
     this.logger.debug(
       'delegating get user roles by their id to UserRoleRepository',
+      { params },
     )
     return this.userRoleRepository.getByUserId(params)
   }

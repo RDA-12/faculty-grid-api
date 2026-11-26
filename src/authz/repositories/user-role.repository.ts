@@ -26,7 +26,7 @@ export class UserRoleRepository {
    */
   async save(userId: string, role: Role): Promise<AppResult<UserRoles>> {
     try {
-      this.logger.debug('start getting current user roles')
+      this.logger.debug('start getting current user roles', { userId, role })
       const rows = await this.repository.findBy({ userId: userId })
       const roles = rows.map((it) => it.role)
       const exists = roles.includes(role)
@@ -44,7 +44,7 @@ export class UserRoleRepository {
       userRoleDb.userId = userId
       userRoleDb.role = role
       const newRole = await this.repository.save(userRoleDb)
-      this.logger.debug('role saved')
+      this.logger.debug('role saved', { newRole })
       return AppResult.success(
         new UserRoles({
           userId: userId,
@@ -61,13 +61,16 @@ export class UserRoleRepository {
           )
         }
       }
+      this.logger.error('failed to save user role', { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 
   async getByUserId(userId: string): Promise<AppResult<UserRoles>> {
+    this.logger.debug('start getting user role by user id', { userId })
     const rows = await this.repository.findBy({ userId: userId })
     const roles = rows.map((it) => it.role)
+    this.logger.debug('user role obtained', { roles })
     return AppResult.success(new UserRoles({ userId: userId, roles: roles }))
   }
 }

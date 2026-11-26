@@ -49,24 +49,31 @@ export class RegisterAdminUseCase implements PromiseUseCase<
    * Start registerin new admin based on params
    */
   async execute(params: RegisterAdminParams): Promise<AppResult<User>> {
-    this.logger.debug('delegating user creation to CreateUseUseCase')
+    this.logger.debug('delegating user creation to CreateUseUseCase', {
+      params,
+    })
     const userCreateResult = await this.createUserUseCase.execute(
       new CreateUserParams({ name: params.name, email: params.email }),
     )
     if (userCreateResult.exception) {
-      this.logger.debug('user creation failed')
+      this.logger.debug('user creation failed', {
+        error: userCreateResult.exception,
+      })
       return AppResult.failed(userCreateResult.exception)
     }
     const user = userCreateResult.data!
 
     this.logger.debug(
       'delegating assign user with admin role to AssignRoleUseCase',
+      { user },
     )
     const assignResult = await this.assignRoleUseCase.execute(
       new AssignRoleParams({ userId: user.id, role: Role.admin }),
     )
     if (assignResult.exception) {
-      this.logger.debug('failed to assign admin role')
+      this.logger.debug('failed to assign admin role', {
+        error: assignResult.exception,
+      })
       return AppResult.failed(assignResult.exception)
     }
     this.logger.debug('user assigned with admin role')
@@ -74,19 +81,23 @@ export class RegisterAdminUseCase implements PromiseUseCase<
     this.logger.debug('delegating hashing password to AppPasswordHasher')
     const hashedResult = await this.passwordHashed.hash(params.password)
     if (hashedResult.exception) {
-      this.logger.debug('password hashed failed')
+      this.logger.debug('password hashed failed', {
+        error: hashedResult.exception,
+      })
       return AppResult.failed(hashedResult.exception)
     }
-    this.logger.debug('password hashed')
     const hashed = hashedResult.data!
+    this.logger.debug('password hashed', { hashedPassword: hashed })
 
     this.logger.debug('delegating credential creation to CredentialRepository')
     const saveResult = await this.credentialRepository.save(user.id, hashed)
     if (saveResult.exception) {
-      this.logger.debug('credential creation failed')
+      this.logger.debug('credential creation failed', {
+        error: saveResult.exception,
+      })
       return AppResult.failed(saveResult.exception)
     }
-    this.logger.debug('credential created')
+    this.logger.debug('credential created', { data: saveResult.data })
     this.logger.debug('register admin success')
     return userCreateResult
   }

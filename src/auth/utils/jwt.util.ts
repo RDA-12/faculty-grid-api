@@ -36,48 +36,57 @@ export class JWT extends JwtBearerProvider<User> {
     try {
       this.logger.debug(
         'delegate refreshing access token to TokenService from nestjs',
+        { refreshToken },
       )
       const newToken = await this.nestTokenService.refresh(refreshToken)
-      this.logger.debug('access token refreshed')
+      this.logger.debug('access token refreshed', { newToken })
       return AppResult.success(new UserToken(newToken))
     } catch (error) {
       if (error instanceof RefreshTokenError) {
-        this.logger.error(`refresh token is invalid: ${error as Error}`)
+        this.logger.error(`refresh token is invalid: ${error as Error}`, {
+          error,
+        })
         return AppResult.failed(new InvalidRefreshTokenException(error.message))
       }
-      this.logger.error(`failed to refresh access token: ${error as Error}`)
+      this.logger.error(`failed to refresh access token: ${error as Error}`, {
+        error,
+      })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 
   async issue(userId: string): Promise<AppResult<UserToken>> {
     try {
-      this.logger.debug('delegate issueing token to TokenService from nestjs')
+      this.logger.debug('delegate issueing token to TokenService from nestjs', {
+        userId,
+      })
       const issuedToken = await this.nestTokenService.issue(userId, {
         method: 'password',
       })
-      this.logger.debug('token issued successfully')
+      this.logger.debug('token issued successfully', { issuedToken })
       return AppResult.success(new UserToken(issuedToken))
     } catch (error) {
-      this.logger.error(`failed to issue token: ${error as Error}`)
+      this.logger.error(`failed to issue token: ${error as Error}`, { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 
-  async validate({ sub }: JwtClaims): Promise<User | null | undefined> {
-    if (!sub) {
-      this.logger.debug('user id not found within jwt claims')
+  async validate(claims: JwtClaims): Promise<User | null | undefined> {
+    if (!claims.sub) {
+      this.logger.debug('user id not found within jwt claims', { claims })
       return
     }
-    this.logger.debug('delegating get user by id to GetUserByIdUseCase')
-    const result = await this.getUserByIdUseCase.execute(sub)
+    this.logger.debug('delegating get user by id to GetUserByIdUseCase', {
+      userId: claims.sub,
+    })
+    const result = await this.getUserByIdUseCase.execute(claims.sub)
 
     if (result.exception) {
-      this.logger.debug('failed to get user by id')
+      this.logger.debug('failed to get user by id', { error: result.exception })
       return null
     }
 
-    this.logger.debug('user obtained')
+    this.logger.debug('user obtained', { user: result.data })
     return result.data!
   }
 }

@@ -43,25 +43,31 @@ export class LoginUseCase implements PromiseUseCase<LoginParams, UserToken> {
   private readonly logger: Logger
 
   async execute(params: LoginParams): Promise<AppResult<UserToken>> {
-    this.logger.debug('delegate getting user to GetUserByEmailUseCase')
+    this.logger.debug('delegate getting user to GetUserByEmailUseCase', {
+      params,
+    })
     const userResult = await this.getUserByEmailUseCase.execute(params.email)
     if (userResult.exception) {
-      this.logger.debug('GetUserByEmailUseCase failed')
+      this.logger.debug('GetUserByEmailUseCase failed', {
+        error: userResult.exception,
+      })
       return AppResult.failed(userResult.exception)
     }
-    this.logger.debug('user obtained')
     const user = userResult.data!
+    this.logger.debug('user obtained', { user })
 
     this.logger.debug('delegate get user credential to CredentialRepository')
     const credentialResult = await this.credentialRepository.getByUserId(
       user.id,
     )
     if (credentialResult.exception) {
-      this.logger.debug('CredentialRepository failed')
+      this.logger.debug('CredentialRepository failed', {
+        error: credentialResult.exception,
+      })
       return AppResult.failed(credentialResult.exception)
     }
-    this.logger.debug('credential obtained')
     const credential = credentialResult.data!
+    this.logger.debug('credential obtained', { credential })
 
     this.logger.debug('delegate verify provided password to AppPasswordHasher')
     const hashResult = await this.passwordHasher.verify(
@@ -69,7 +75,9 @@ export class LoginUseCase implements PromiseUseCase<LoginParams, UserToken> {
       credential.hashedPassword,
     )
     if (hashResult.exception) {
-      this.logger.debug('AppPasswordHasher failed')
+      this.logger.debug('AppPasswordHasher failed', {
+        error: hashResult.exception,
+      })
       return AppResult.failed(hashResult.exception)
     }
     const verfied = hashResult.data
@@ -82,10 +90,12 @@ export class LoginUseCase implements PromiseUseCase<LoginParams, UserToken> {
     this.logger.debug('delegate token generation to JWT')
     const issueResult = await this.jwt.issue(user.id)
     if (issueResult.exception) {
-      this.logger.debug('token generation failed')
+      this.logger.debug('token generation failed', {
+        error: issueResult.exception,
+      })
       return AppResult.failed(issueResult.exception)
     }
-    this.logger.debug('token generation success')
+    this.logger.debug('token generation success', { data: issueResult.data })
     return issueResult
   }
 }

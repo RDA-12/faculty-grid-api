@@ -31,9 +31,9 @@ export class UserRepository {
       const dbEntity = new UserDBEntity()
       dbEntity.name = params.name
       dbEntity.email = params.email
-      this.logger.debug('start saving new user')
+      this.logger.debug('start saving new user', { params })
       const savedEntity = await this.repository.save(dbEntity)
-      this.logger.debug('user saved')
+      this.logger.debug('user saved', { data: savedEntity })
       return AppResult.success(savedEntity.toDomain())
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -48,13 +48,13 @@ export class UserRepository {
           )
         }
       }
-      this.logger.error(`failed to save user. ${error as Error}`)
+      this.logger.error(`failed to save user`, { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
 
   async getByEmail(email: string): Promise<AppResult<User>> {
-    this.logger.debug('start get user by its email')
+    this.logger.debug('start get user by its email', { email })
     const result = await this.repository.findOneBy({ email })
     if (!result) {
       this.logger.debug('failed to get user. email not found')
@@ -62,12 +62,12 @@ export class UserRepository {
         new NotFoundException(`user with email ${email} not found`),
       )
     }
-    this.logger.debug('user found')
+    this.logger.debug('user found', { data: result })
     return AppResult.success(result.toDomain())
   }
 
   async getById(id: string): Promise<AppResult<User>> {
-    this.logger.debug('start get user by its id')
+    this.logger.debug('start get user by its id', { id })
     const result = await this.repository.findOneBy({ id })
     if (!result) {
       this.logger.debug('failed to get user. id not found')
@@ -75,7 +75,7 @@ export class UserRepository {
         new NotFoundException(`user with id ${id} not found`),
       )
     }
-    this.logger.debug('user found')
+    this.logger.debug('user found', { data: result })
     return AppResult.success(result.toDomain())
   }
 }

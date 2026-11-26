@@ -16,7 +16,7 @@ export class GetUserByIdUseCase implements PromiseUseCase<string, User> {
   private readonly logger: Logger
 
   execute(params: string): Promise<AppResult<User>> {
-    this.logger.debug('delegate get user by Id to UserRepository')
+    this.logger.debug('delegate get user by Id to UserRepository', { params })
     return this.userRepository.getById(params)
   }
 }

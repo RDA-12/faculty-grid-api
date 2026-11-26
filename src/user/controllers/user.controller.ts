@@ -34,6 +34,7 @@ export class UserController {
   getMe(@CurrentUser() user: User) {
     this.logger.debug(
       'delegating get current user to AuthenticationModule from nestjs',
+      { user },
     )
     return AppResult.success(UserOut.fromUser(user))
   }

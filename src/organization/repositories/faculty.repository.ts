@@ -28,12 +28,12 @@ export class FacultyRepository {
    */
   async save(name: string, createdBy: string): Promise<AppResult<Faculty>> {
     try {
-      this.logger.debug('start saving new faculty')
+      this.logger.debug('start saving new faculty', { name, createdBy })
       const facultyInsertDB = new FacultyDBEntity()
       facultyInsertDB.name = name
       facultyInsertDB.createdBy = createdBy
       const facultyDB = await this.repository.save(facultyInsertDB)
-      this.logger.debug('faculty saved')
+      this.logger.debug('faculty saved', { data: facultyDB })
       return AppResult.success(facultyDB.toDomain())
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -45,6 +45,7 @@ export class FacultyRepository {
           )
         }
       }
+      this.logger.error('failed to save faculty', { error })
       return AppResult.failed(new UnexpectedException(`${error as Error}`))
     }
   }
@@ -54,7 +55,7 @@ export class FacultyRepository {
   ): Promise<AppResult<PaginatedResult<Faculty>>> {
     const page = params?.page ?? 1
     const pageSize = params?.pageSize ?? 10
-    this.logger.debug('start getting all faculties')
+    this.logger.debug('start getting all faculties', { params })
     let query = this.repository.createQueryBuilder('faculties')
     if (params?.search) {
       query = query.andWhere('faculties.name LIKE :search', {
@@ -68,7 +69,7 @@ export class FacultyRepository {
         'faculties.created_at': 'DESC',
       })
       .getManyAndCount()
-    this.logger.debug('faculties obtained')
+    this.logger.debug('faculties obtained', { rows, total })
     const faculties = rows.map((it) => it.toDomain())
     return AppResult.success(
       new PaginatedResult({
@@ -83,7 +84,7 @@ export class FacultyRepository {
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {
-    this.logger.debug('start get faculty with its programs')
+    this.logger.debug('start get faculty with its programs', { id })
     const facultyDb = await this.repository.findOne({
       where: { id: id },
       relations: {

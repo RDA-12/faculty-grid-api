@@ -54,7 +54,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(@Body() loginDTO: LoginDTO): Promise<AppResult<UserTokenOut>> {
-    this.logger.debug('delegating login to LoginUseCase')
+    this.logger.debug('delegating login to LoginUseCase', { body: loginDTO })
     const result = await this.loginUseCase.execute(
       new LoginParams({
         email: loginDTO.email,
@@ -86,7 +86,10 @@ export class AuthController {
     @ApiKeyHeader() _apiKey: string,
     @Body() registerAdminDTO: RegisterAdminDTO,
   ): Promise<AppResult<AuthUserOut>> {
-    this.logger.debug('delegating register admin to RegisterAdminUseCase')
+    this.logger.debug('delegating register admin to RegisterAdminUseCase', {
+      apiKey: _apiKey,
+      body: registerAdminDTO,
+    })
     const result = await this.registerAdminUseCase.execute(
       new RegisterAdminParams({
         name: registerAdminDTO.name,
@@ -121,6 +124,7 @@ export class AuthController {
   ): Promise<AppResult<UserTokenOut>> {
     this.logger.debug(
       'delegating access token refreshment to RefreshAccessTokenUseCase',
+      { body },
     )
     const result = await this.refreshAccessTokenUseCase.execute(
       body.refreshToken,

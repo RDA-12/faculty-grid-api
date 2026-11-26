@@ -63,7 +63,9 @@ export class ProgramController {
     @CurrentUser() user: User,
     @Body() body: CreateProgramDTO,
   ): Promise<AppResult<ProgramOut>> {
-    this.logger.debug('delegating create new program to CreateProgramRequest')
+    this.logger.debug('delegating create new program to CreateProgramRequest', {
+      body,
+    })
     const result = await this.createProgramUseCase.execute(
       new CreateProgramParams({
         name: body.name,
@@ -73,10 +75,10 @@ export class ProgramController {
       }),
     )
     if (result.exception) {
-      this.logger.debug('create program failed')
+      this.logger.debug('create program failed', { error: result.exception })
       return AppResult.failed(result.exception)
     }
-    this.logger.debug('program created')
+    this.logger.debug('program created', { data: result.data })
     return AppResult.success(ProgramOut.fromProgram(result.data!))
   }
 
@@ -92,15 +94,17 @@ export class ProgramController {
     @CurrentUser() _user: User,
     @Query() query?: ProgramsQuery,
   ): Promise<AppResult<PaginatedResult<ProgramOut>>> {
-    this.logger.debug('delegating get programs to GetProgramsUseCase')
+    this.logger.debug('delegating get programs to GetProgramsUseCase', {
+      query,
+    })
     const result = await this.getProgramsUseCase.execute(
       new GetProgramsParams(query ?? {}),
     )
     if (result.exception) {
-      this.logger.debug('failed to get programs')
+      this.logger.debug('failed to get programs', { error: result.exception })
       return AppResult.failed(result.exception)
     }
-    this.logger.debug('programs obtained')
+    this.logger.debug('programs obtained', { data: result.data })
     return AppResult.success(
       result.data!.mapData((it) => ProgramOut.fromProgram(it)),
     )
@@ -111,11 +115,14 @@ export class ProgramController {
   @Delete(':id')
   @HttpCode(204)
   async deleteProgram(@CurrentUser() _user: User, @Param('id') id: string) {
-    this.logger.debug('delegating delete program to DeleteProgramUseCase')
+    this.logger.debug('delegating delete program to DeleteProgramUseCase', {
+      id,
+    })
     const result = await this.deleteProgramUseCase.execute(id)
     if (result.exception) {
-      this.logger.debug('failed to delete program')
+      this.logger.debug('failed to delete program', { error: result.exception })
       return result
     }
+    this.logger.debug('program deleted')
   }
 }

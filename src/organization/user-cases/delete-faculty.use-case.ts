@@ -15,7 +15,9 @@ export class DeleteFacultyUseCase implements PromiseUseCase<string, null> {
   private readonly logger: Logger
 
   execute(params: string): Promise<AppResult<null>> {
-    this.logger.debug('delegating deleting a faculty to FacultyRepository')
+    this.logger.debug('delegating deleting a faculty to FacultyRepository', {
+      params,
+    })
     return this.facultyRepository.deleteById(params)
   }
 }
