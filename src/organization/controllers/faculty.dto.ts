@@ -36,7 +36,7 @@ export class GetFacultiesQuery extends PaginationQuery {
     }
   }
 
-  @ApiProperty({ description: 'Search faculties by its name' })
+  @ApiProperty({ description: 'Search faculties by its name', required: false })
   @IsOptional()
   @IsString()
   search?: string
