@@ -7,11 +7,8 @@ import {
   NotFoundException,
   UnexpectedException,
 } from '../../common/app-exception.js'
-import {
-  PaginatedResult,
-  Pagination,
-  PaginationResult,
-} from '../../common/pagination.js'
+import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
+import type { GetFacultiesParams } from '../user-cases/get-faculties.use-case.js'
 
 /**
  * Repository manage faculty data
@@ -53,13 +50,18 @@ export class FacultyRepository {
   }
 
   async getAll(
-    pagination?: Pagination,
+    params?: GetFacultiesParams,
   ): Promise<AppResult<PaginatedResult<Faculty>>> {
-    const page = pagination?.page ?? 1
-    const pageSize = pagination?.pageSize ?? 10
+    const page = params?.page ?? 1
+    const pageSize = params?.pageSize ?? 10
     this.logger.debug('start getting all faculties')
-    const [rows, total] = await this.repository
-      .createQueryBuilder('faculties')
+    let query = this.repository.createQueryBuilder('faculties')
+    if (params?.search) {
+      query = query.andWhere('faculties.name LIKE :search', {
+        search: `%${params.search}%`,
+      })
+    }
+    const [rows, total] = await query
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .orderBy({

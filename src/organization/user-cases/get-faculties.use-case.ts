@@ -5,12 +5,22 @@ import { FacultyRepository } from '../repositories/faculty.repository.js'
 import { PaginatedResult, Pagination } from '../../common/pagination.js'
 import { PromiseUseCase } from '../../common/base-use-case.js'
 
+export class GetFacultiesParams extends Pagination {
+  constructor({ page, pageSize, search }: Partial<GetFacultiesParams>) {
+    super({ page, pageSize })
+    this.search = search
+  }
+
+  /** Search faculties by its name */
+  search?: string
+}
+
 /**
  * Use case to get all faculties
  */
 @Injectable()
 export class GetFacultiesUseCase implements PromiseUseCase<
-  Pagination,
+  GetFacultiesParams,
   PaginatedResult<Faculty>
 > {
   constructor(private readonly facultyRepository: FacultyRepository) {
@@ -19,7 +29,9 @@ export class GetFacultiesUseCase implements PromiseUseCase<
 
   private readonly logger: Logger
 
-  execute(params?: Pagination): Promise<AppResult<PaginatedResult<Faculty>>> {
+  execute(
+    params?: GetFacultiesParams,
+  ): Promise<AppResult<PaginatedResult<Faculty>>> {
     this.logger.debug('delegating get all faculties to FacultyRepository')
     return this.facultyRepository.getAll(params)
   }

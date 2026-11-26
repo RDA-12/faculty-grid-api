@@ -3,7 +3,10 @@ import { AppResult } from '../../common/app-result.js'
 import { Test } from '@nestjs/testing'
 import { Faculty } from '../entities/faculty.entity.js'
 import { FacultyRepository } from '../repositories/faculty.repository.js'
-import { GetFacultiesUseCase } from './get-faculties.use-case.js'
+import {
+  GetFacultiesParams,
+  GetFacultiesUseCase,
+} from './get-faculties.use-case.js'
 import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
 
 describe('GetFacultiesUseCase', () => {
@@ -63,5 +66,15 @@ describe('GetFacultiesUseCase', () => {
     const result = await getFacultiesUseCase.execute()
 
     expect(result).toStrictEqual(AppResult.failed(e))
+  })
+
+  it('should calls FacultyRepository.getAll once with search params', async () => {
+    const params = new GetFacultiesParams({
+      search: 'lol',
+    })
+
+    await getFacultiesUseCase.execute(params)
+
+    expect(facultyRepository.getAll).toHaveBeenCalledExactlyOnceWith(params)
   })
 })

@@ -4,13 +4,20 @@ import { AppException } from '../../common/app-exception.js'
 import { User } from '../../user/entities/user.entity.js'
 import { ConfigService } from '@nestjs/config'
 import { Faculty } from '../entities/faculty.entity.js'
-import { CreateFacultyDTO, FacultyOut } from './faculty.dto.js'
+import {
+  CreateFacultyDTO,
+  FacultyOut,
+  GetFacultiesQuery,
+} from './faculty.dto.js'
 import {
   CreateFacultyParams,
   CreateFacultyUseCase,
 } from '../user-cases/create-faculty.use-case.js'
 import { FacultyController } from './faculty.controller.js'
-import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
+import {
+  GetFacultiesParams,
+  GetFacultiesUseCase,
+} from '../user-cases/get-faculties.use-case.js'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 import {
   PaginatedResult,
@@ -162,6 +169,16 @@ describe('FacultyController', () => {
       const result = await facultyController.getFaculties(user)
 
       expect(result).toStrictEqual(AppResult.failed(e))
+    })
+
+    it('should calls GetFacultiesUseCase once with search query', async () => {
+      const query = new GetFacultiesQuery({ search: 'search' })
+
+      await facultyController.getFaculties(user, query)
+
+      expect(getFacultiesUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        new GetFacultiesParams({ search: 'search' }),
+      )
     })
   })
 

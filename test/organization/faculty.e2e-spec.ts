@@ -140,10 +140,27 @@ describe('Faculty', () => {
 
     it('should return 401 when Auth header is invalid', async () => {
       const response = await request(app.getHttpServer())
-        .post('/faculties')
+        .get('/faculties')
         .set('Authorization', 'Bearer lol')
 
       excpectResponseInvalidAuth(response)
+    })
+
+    it('should return correct faculties when search query included', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/faculties?search=0')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: [expected[4]],
+        pagination: {
+          total: 1,
+          page: 1,
+          pageSize: 10,
+        },
+      })
     })
   })
 

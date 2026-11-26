@@ -13,7 +13,11 @@ import {
   CreateFacultyParams,
   CreateFacultyUseCase,
 } from '../user-cases/create-faculty.use-case.js'
-import { CreateFacultyDTO, FacultyOut } from './faculty.dto.js'
+import {
+  CreateFacultyDTO,
+  FacultyOut,
+  GetFacultiesQuery,
+} from './faculty.dto.js'
 import { AppResult } from '../../common/app-result.js'
 import { CurrentUser } from '@nestjs/authentication'
 import { User } from '../../user/entities/user.entity.js'
@@ -23,15 +27,14 @@ import {
 } from '../../common/app-response.js'
 import { RequiredPermisson } from '../../authz/decorators/required-permission.decorator.js'
 import { FacultyPolicy } from '../policies/faculty.policy.js'
-import { GetFacultiesUseCase } from '../user-cases/get-faculties.use-case.js'
+import {
+  GetFacultiesParams,
+  GetFacultiesUseCase,
+} from '../user-cases/get-faculties.use-case.js'
 import { ApiNoContentResponse } from '@nestjs/swagger'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 import { Anyone } from '../../authz/decorators/anyone.decorator.js'
-import {
-  PaginatedResult,
-  Pagination,
-  PaginationQuery,
-} from '../../common/pagination.js'
+import { PaginatedResult } from '../../common/pagination.js'
 
 @Controller('faculties')
 export class FacultyController {
@@ -84,11 +87,11 @@ export class FacultyController {
   @Get()
   async getFaculties(
     @CurrentUser() _user: User,
-    @Query() params?: PaginationQuery,
+    @Query() params?: GetFacultiesQuery,
   ): Promise<AppResult<PaginatedResult<FacultyOut>>> {
     this.logger.debug('delegating get faculties to GetFacultiesUseCase')
     const result = await this.GetFacultiesUseCase.execute(
-      new Pagination(params ?? {}),
+      new GetFacultiesParams(params ?? {}),
     )
     if (result.exception) {
       this.logger.debug('failed to get faculties')

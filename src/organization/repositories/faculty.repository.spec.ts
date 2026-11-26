@@ -14,6 +14,7 @@ import {
 } from '../../common/pagination.js'
 import { ProgramDBEntity } from '../../common/database/entities/program.entity.js'
 import { ProgramDegreeLevel } from '../entities/program.entity.js'
+import { GetFacultiesParams } from '../user-cases/get-faculties.use-case.js'
 
 describe('FacultyRepository', () => {
   let userDb: UserDBEntity
@@ -122,6 +123,25 @@ describe('FacultyRepository', () => {
               page: 1,
               pageSize: 1,
               total: 5,
+            }),
+          }),
+        ),
+      )
+    })
+
+    it('should return correct searched faculties', async () => {
+      const result = await facultyRepository.getAll(
+        new GetFacultiesParams({ search: '4' }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new PaginatedResult({
+            data: [expected[0]],
+            pagination: new PaginationResult({
+              page: 1,
+              pageSize: 10,
+              total: 1,
             }),
           }),
         ),
