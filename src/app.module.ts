@@ -5,7 +5,7 @@ import { DatabaseModule } from './common/database/database.module.js'
 import { ConfigModule } from '@nestjs/config'
 import { appConfig } from './common/config.js'
 import { AuthzModule } from './authz/authz.module.js'
-import { OrganizationModule } from './organization/organization.module.js';
+import { OrganizationModule } from './organization/organization.module.js'
 
 @Module({
   imports: [

@@ -7,12 +7,13 @@ import { GetRolesByUserIdUseCase } from './use-cases/get-roles-by-user-id.use-ca
 import { AuthzUser } from './entities/authz-user.js'
 import { FacultyPolicy } from '../organization/policies/faculty.policy.js'
 import { ProgramPolicy } from '../organization/policies/program.policy.js'
+import { TitlePolicy } from '../organization/policies/title.policy.js'
 
 @Module({
   imports: [
     AuthorizationModule.forRootAsync({
       imports: [AuthzModule],
-      policies: [FacultyPolicy, ProgramPolicy],
+      policies: [FacultyPolicy, ProgramPolicy, TitlePolicy],
       useFactory: (getRolesByUserIdUseCase: GetRolesByUserIdUseCase) => {
         return {
           getUser: async (context) => {

@@ -9,21 +9,35 @@ import { ProgramRepository } from './repositories/program.repository.js'
 import { CreateProgramUseCase } from './user-cases/create-program.use-case.js'
 import { GetProgramsUseCase } from './user-cases/get-programs.use-case.js'
 import { DeleteProgramUseCase } from './user-cases/delete-program.use-case.js'
+import { TitleController } from './controllers/title.controller.js'
+import { TitleRepository } from './repositories/title.repository.js'
+import { CreateTitleUseCase } from './user-cases/create-title.use-case.js'
+import { GetTitlesUseCase } from './user-cases/get-titles.use-case.js'
+import { GetTitleByIdUseCase } from './user-cases/get-title-by-id.use-case.js'
+import { UpdateTitleUseCase } from './user-cases/update-title.use-case.js'
+import { DeleteTitleUseCase } from './user-cases/delete-title.use-case.js'
 
 /**
- * Handle organization master data, e.g. faculty & program
+ * Handle organization master data, e.g. faculty, program & structural title
  */
 @Module({
-  controllers: [FacultyController, ProgramController],
+  controllers: [FacultyController, ProgramController, TitleController],
   providers: [
     FacultyRepository,
     ProgramRepository,
+    TitleRepository,
     CreateFacultyUseCase,
     GetFacultiesUseCase,
     DeleteFacultyUseCase,
     CreateProgramUseCase,
     GetProgramsUseCase,
     DeleteProgramUseCase,
+    CreateTitleUseCase,
+    GetTitlesUseCase,
+    GetTitleByIdUseCase,
+    UpdateTitleUseCase,
+    DeleteTitleUseCase,
   ],
+  exports: [GetTitleByIdUseCase],
 })
 export class OrganizationModule {}
