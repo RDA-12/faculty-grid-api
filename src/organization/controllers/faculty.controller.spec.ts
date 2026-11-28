@@ -19,6 +19,7 @@ import {
   GetFacultiesParams,
   GetFacultiesUseCase,
 } from '../user-cases/get-faculties.use-case.js'
+import { GetFacultyByIdUseCase } from '../user-cases/get-faculty-by-id.use-case.js'
 import {
   UpdateFacultyParams,
   UpdateFacultyUseCase,
@@ -51,6 +52,7 @@ describe('FacultyController', () => {
   })
   let createFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let getFacultiesUseCase: { execute: ReturnType<typeof vi.fn> }
+  let getFacultyByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let updateFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let deleteFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let facultyController: FacultyController
@@ -74,6 +76,12 @@ describe('FacultyController', () => {
           },
         },
         {
+          provide: GetFacultyByIdUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(faculty)),
+          },
+        },
+        {
           provide: UpdateFacultyUseCase,
           useValue: {
             execute: vi.fn().mockResolvedValue(AppResult.success(faculty)),
@@ -94,6 +102,7 @@ describe('FacultyController', () => {
 
     createFacultyUseCase = moduleRef.get(CreateFacultyUseCase)
     getFacultiesUseCase = moduleRef.get(GetFacultiesUseCase)
+    getFacultyByIdUseCase = moduleRef.get(GetFacultyByIdUseCase)
     updateFacultyUseCase = moduleRef.get(UpdateFacultyUseCase)
     deleteFacultyUseCase = moduleRef.get(DeleteFacultyUseCase)
 
@@ -192,6 +201,33 @@ describe('FacultyController', () => {
       expect(getFacultiesUseCase.execute).toHaveBeenCalledExactlyOnceWith(
         new GetFacultiesParams({ search: 'search' }),
       )
+    })
+  })
+
+  describe('getFacultyById', () => {
+    it('calls GetFacultyByIdUseCase once', async () => {
+      await facultyController.getFacultyById(user, 'faculty-id')
+
+      expect(getFacultyByIdUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        'faculty-id',
+      )
+    })
+
+    it('should return FacultyOut when GetFacultyByIdUseCase succeeds', async () => {
+      const result = await facultyController.getFacultyById(user, 'faculty-id')
+
+      expect(result).toStrictEqual(AppResult.success(facultyOut))
+    })
+
+    it('should return failed when GetFacultyByIdUseCase fails', async () => {
+      const e = AppException.test()
+      vi.spyOn(getFacultyByIdUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await facultyController.getFacultyById(user, 'faculty-id')
+
+      expect(result).toStrictEqual(AppResult.failed(e))
     })
   })
 

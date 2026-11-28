@@ -34,6 +34,7 @@ import {
   GetFacultiesParams,
   GetFacultiesUseCase,
 } from '../user-cases/get-faculties.use-case.js'
+import { GetFacultyByIdUseCase } from '../user-cases/get-faculty-by-id.use-case.js'
 import {
   UpdateFacultyParams,
   UpdateFacultyUseCase,
@@ -48,6 +49,7 @@ export class FacultyController {
   constructor(
     private readonly createFacultyUseCase: CreateFacultyUseCase,
     private readonly GetFacultiesUseCase: GetFacultiesUseCase,
+    private readonly getFacultyByIdUseCase: GetFacultyByIdUseCase,
     private readonly updateFacultyUseCase: UpdateFacultyUseCase,
     private readonly deleteFacultyUseCase: DeleteFacultyUseCase,
   ) {
@@ -116,6 +118,35 @@ export class FacultyController {
     return AppResult.success(
       result.data!.mapData((it) => FacultyOut.fromFaculty(it)),
     )
+  }
+
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Faculty obtained successfully',
+    model: FacultyOut,
+  })
+  @ApiFailedResponse({
+    status: 404,
+    description: 'Faculty cannot be found',
+  })
+  @Anyone()
+  @Get(':id')
+  async getFacultyById(
+    @CurrentUser() _user: User,
+    @Param('id') id: string,
+  ): Promise<AppResult<FacultyOut>> {
+    this.logger.debug('delegating get faculty by id to GetFacultyByIdUseCase', {
+      id,
+    })
+    const result = await this.getFacultyByIdUseCase.execute(id)
+    if (result.exception) {
+      this.logger.debug('failed to get faculty by id', {
+        error: result.exception,
+      })
+      return AppResult.failed(result.exception)
+    }
+    this.logger.debug('faculty obtained', { data: result.data })
+    return AppResult.success(FacultyOut.fromFaculty(result.data!))
   }
 
   @ApiSuccessResponse({

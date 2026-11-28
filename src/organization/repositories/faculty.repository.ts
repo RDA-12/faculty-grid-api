@@ -84,6 +84,21 @@ export class FacultyRepository {
     )
   }
 
+  async getById(id: string): Promise<AppResult<Faculty>> {
+    this.logger.debug('start getting faculty by id', { id })
+    const facultyDb = await this.repository.findOne({
+      where: { id },
+    })
+    if (!facultyDb) {
+      this.logger.debug('faculty not found', { id })
+      return AppResult.failed(
+        new NotFoundException(`faculty with ID ${id} is not found`),
+      )
+    }
+    this.logger.debug('faculty obtained', { data: facultyDb })
+    return AppResult.success(facultyDb.toDomain())
+  }
+
   async update(params: UpdateFacultyParams): Promise<AppResult<Faculty>> {
     try {
       this.logger.debug('start updating faculty', { params })

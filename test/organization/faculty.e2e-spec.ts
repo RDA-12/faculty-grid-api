@@ -164,6 +164,62 @@ describe('Faculty', () => {
     })
   })
 
+  describe('/GET faculties/:id', () => {
+    let createdFaculty: { id: string; name: string }
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "faculties" RESTART IDENTITY CASCADE`,
+      )
+      const response = await request(app.getHttpServer())
+        .post('/faculties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Faculty of Science',
+        })
+      createdFaculty = response.body.data
+    })
+
+    it('should return 200 with faculty when found', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/faculties/${createdFaculty.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: createdFaculty,
+      })
+    })
+
+    it('should return 404 when faculty is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/faculties/not-found')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body).toMatchObject({
+        status: 404,
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/faculties/${createdFaculty.id}`,
+      )
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/faculties/${createdFaculty.id}`)
+        .set('Authorization', 'Bearer invalid')
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
   describe('/PUT faculties/:id', () => {
     let createdFaculty: { id: string; name: string }
 

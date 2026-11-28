@@ -150,6 +150,47 @@ describe('FacultyRepository', () => {
     })
   })
 
+  describe('getById', () => {
+    let savedFaculty: FacultyDBEntity
+
+    beforeEach(async () => {
+      const facultyInsertDB = new FacultyDBEntity()
+      facultyInsertDB.name = 'Faculty of Science'
+      facultyInsertDB.createdBy = userDb.id
+      savedFaculty = await dataSource.manager.save(facultyInsertDB)
+    })
+
+    it('should return faculty when found', async () => {
+      const result = await facultyRepository.getById(savedFaculty.id)
+
+      expect(result).toStrictEqual(AppResult.success(savedFaculty.toDomain()))
+    })
+
+    it('should return NotFoundException when faculty is not found', async () => {
+      const result = await facultyRepository.getById('not-found')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('faculty with ID not-found is not found'),
+        ),
+      )
+    })
+
+    it('should return NotFoundException when faculty is soft-deleted', async () => {
+      await dataSource.manager.softRemove(savedFaculty)
+
+      const result = await facultyRepository.getById(savedFaculty.id)
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException(
+            `faculty with ID ${savedFaculty.id} is not found`,
+          ),
+        ),
+      )
+    })
+  })
+
   describe('update', () => {
     let savedFaculty: FacultyDBEntity
 
