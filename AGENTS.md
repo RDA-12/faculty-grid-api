@@ -84,7 +84,7 @@ This project is an ESM (`"type": "module"`, `"module": "nodenext"`) NestJS 12 RE
 
 # Project Structure
 
-The codebase is organized into **feature-based modules** under `src/` and shared infrastructure under `src/common/`. Some modules manage multiple closely related entities (e.g., `organization` manages `faculty` and `program`), while others manage a single entity (e.g., `user` manages only `user`).
+The codebase is organized into **feature-based modules** under `src/` and shared infrastructure under `src/common/`. Some modules manage multiple closely related entities (e.g., `organization` manages `faculty`, `program`, and structural `title`; `lecturer` manages `rank`, `functional_rank`, `lecturer`, and `lecturer_title`), while others manage a single entity (e.g., `user` manages only `user`).
 
 ```text
 src/
@@ -102,14 +102,15 @@ src/
 │   │   ├── database.module.ts      # TypeOrmModule.forRootAsync(...)
 │   │   ├── entities/               # Centralized TypeORM *DBEntity classes + common.entity.ts base classes
 │   │   └── migrations/             # Generated TypeORM migrations
-│   ├── decorators/                 # Custom parameter/route decorators (e.g., @ApiKeyHeader)
+│   ├── decorators/                 # Custom parameter/route/validation decorators (e.g., @ApiKeyHeader, @IsAfter)
 │   ├── exception-filter/           # Global filters (CatchEverything, InvalidRequest, Unauthorized)
 │   ├── interceptors/               # Global interceptors (LoggingInterceptor, ResponseTransformerIntereceptor)
 │   └── pipes/                      # Custom pipes (e.g., ApiKeyValidationPipe)
 ├── auth/                           # Authentication (login, register-admin, refresh token, credentials, JWT/hashing utils)
 ├── authz/                          # Authorization (roles, user-roles, AuthorizationModule, @RequiredPermisson, @Anyone)
 ├── user/                           # Single-entity module managing users only (credentials live in auth)
-└── organization/                   # Multi-entity module managing organization master data (faculty & program)
+├── organization/                   # Multi-entity module managing organization master data (faculty, program & structural title)
+└── lecturer/                       # Multi-entity module managing lecturer data (rank, functional rank, lecturer profile & rotatable title assignments)
 
 test/
 ├── helper.ts                       # createTestingApp(), getAccessToken(), auth error assertions
@@ -143,6 +144,7 @@ src/<feature>/
 - `ResponseTransformerIntereceptor` automatically converts:
   - `AppResult.success(data)` -> `SuccessResponse(statusCode, data)`
   - `AppResult.success(PaginatedResult)` -> `PaginatedSucessResponse(statusCode, data, pagination)`
+  - `AppResult.failed(InvalidRequestException)` -> sets status `422` and returns `InvalidRequestReponse(errors)` (matching `InvalidRequestExceptionFilter`)
   - `AppResult.failed(exception)` -> sets `response.status(exception.status)` and returns `FailedResponse(status, title, detail)`
   - `204 No Content` -> empty body (`undefined`)
   - `StreamableFile` -> untouched
@@ -158,6 +160,8 @@ src/<feature>/
 - Register every new `*DBEntity` in `typeOrmConfig.entities` in `src/common/database/config.ts`.
 - Implement `toDomain()` to convert DB entities into pure domain entities (and optional `static fromParams(...)` factory methods).
 - Use `type Relation<T>` from `typeorm` for relation properties to avoid circular ESM metadata issues.
+- On nullable union-typed columns (e.g., `string | null`), always specify `type` explicitly (such as `'varchar'` or `'date'`) alongside `nullable: true`.
+- Enforce active-record uniqueness on soft-deletable tables using partial unique indexes (`@Index(..., { unique: true, where: '"deleted_at" IS NULL' })`).
 
 ### 3. Domain Entities (`src/<module>/entities/`)
 - Pure TypeScript classes with `readonly` properties and a typed constructor object.
@@ -186,7 +190,8 @@ src/<feature>/
 ### 7. Controllers & DTOs (`src/<module>/controllers/`)
 - Thin HTTP adapters that delegate to use cases, check `result.exception`, and map domain entities to `*Out` DTOs (e.g., `FacultyOut.fromFaculty(data)` or `result.data!.mapData(...)`).
 - Request DTOs (`*DTO`, `*Query`) use `class-validator` and `class-transformer` decorators (paginated query DTOs extend `PaginationQuery`).
-- Response DTOs (`*Out`) expose `@ApiProperty()` fields and static mapper methods (`from<Entity>`).
+- Resource updates use `PUT /:id` (replacing editable fields).
+- Response DTOs (`*Out`) expose `@ApiProperty()` fields and static mapper methods (`from<Entity>`). Provide `example` values on `@ApiProperty(...)` for non-ID properties, and omit `example` on ID-based properties.
 - Document endpoints with `@ApiTags`, `@ApiSuccessResponse`, `@ApiFailedResponse`, `@ApiInvalidRequestResponse`, and `@ApiNoContentResponse`.
 
 ---
@@ -228,6 +233,7 @@ TypeORM `synchronize` is **disabled** (`synchronize: false`). All schema changes
   ```bash
   npm run migration:generate -- ./src/common/database/migrations/<one-line-migration-summary>
   ```
+  - Immediately after generating, update line 1 of the migration file to `import type { MigrationInterface, QueryRunner } from 'typeorm'` so TypeORM's dynamic ESM loading does not fail on type-only exports.
 - **Run pending migrations**:
   ```bash
   npm run migration:run
