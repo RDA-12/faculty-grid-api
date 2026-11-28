@@ -14,6 +14,7 @@ import { LecturerPolicy } from '../lecturer/policies/lecturer.policy.js'
 import { LecturerTitlePolicy } from '../title-appointment/policies/lecturer-title.policy.js'
 import { CoursePolicy } from '../course/policies/course.policy.js'
 import { AcademicYearPolicy } from '../academic-calendar/policies/academic-year.policy.js'
+import { TermPolicy } from '../academic-calendar/policies/term.policy.js'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AcademicYearPolicy } from '../academic-calendar/policies/academic-year.
         LecturerTitlePolicy,
         CoursePolicy,
         AcademicYearPolicy,
+        TermPolicy,
       ],
       useFactory: (getRolesByUserIdUseCase: GetRolesByUserIdUseCase) => {
         return {

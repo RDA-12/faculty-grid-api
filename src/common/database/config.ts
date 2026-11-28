@@ -7,6 +7,7 @@ import { LecturerTitleDBEntity } from './entities/lecturer-title.entity.js'
 import { ProgramDBEntity } from './entities/program.entity.js'
 import { RankDBEntity } from './entities/rank.entity.js'
 import { RefreshTokenDBEntity } from './entities/refresh-token.entity.js'
+import { TermDBEntity } from './entities/term.entity.js'
 import { TitleDBEntity } from './entities/title.entity.js'
 import { UserCredentialDBEntity } from './entities/user-credential.entity.js'
 import { UserRoleDBEntity } from './entities/user-role.entity.js'
@@ -34,6 +35,7 @@ export const typeOrmConfig: DataSourceOptions = {
     LecturerTitleDBEntity,
     CourseDBEntity,
     AcademicYearDBEntity,
+    TermDBEntity,
   ],
   synchronize: false,
   migrations: [import.meta.dirname + '/migrations/**/*{.js,.ts}'],
