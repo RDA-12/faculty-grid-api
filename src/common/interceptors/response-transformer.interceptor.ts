@@ -5,8 +5,10 @@ import {
   StreamableFile,
 } from '@nestjs/common'
 import { AppResult } from '../app-result.js'
+import { InvalidRequestException } from '../app-exception.js'
 import {
   FailedResponse,
+  InvalidRequestReponse,
   PaginatedSucessResponse,
   SuccessResponse,
 } from '../app-response.js'
@@ -52,6 +54,9 @@ export class ResponseTransformerIntereceptor implements NestInterceptor {
           if (result.exception) {
             const exception = result.exception
             response.status(exception.status)
+            if (exception instanceof InvalidRequestException) {
+              return new InvalidRequestReponse(exception.errors)
+            }
             return new FailedResponse(
               exception.status,
               exception.title,
