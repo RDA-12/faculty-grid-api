@@ -9,6 +9,7 @@ import { OrganizationModule } from './organization/organization.module.js'
 import { LecturerModule } from './lecturer/lecturer.module.js'
 import { TitleAppointmentModule } from './title-appointment/title-appointment.module.js'
 import { CourseModule } from './course/course.module.js'
+import { AcademicCalendarModule } from './academic-calendar/academic-calendar.module.js'
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CourseModule } from './course/course.module.js'
     LecturerModule,
     TitleAppointmentModule,
     CourseModule,
+    AcademicCalendarModule,
   ],
 })
 export class AppModule {}

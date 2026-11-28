@@ -10,6 +10,13 @@ class DateRangeSample {
   endDate?: string | null
 }
 
+class StrictDateRangeSample {
+  startDate?: string
+
+  @IsAfter('startDate', { strict: true })
+  endDate?: string | null
+}
+
 describe('IsAfter decorator', () => {
   it('passes when endDate is after startDate', async () => {
     const sample = new DateRangeSample()
@@ -61,5 +68,42 @@ describe('IsAfter decorator', () => {
 
     const errors = await validate(sample)
     expect(errors).toHaveLength(0)
+  })
+
+  describe('strict mode', () => {
+    it('passes when endDate is strictly after startDate', async () => {
+      const sample = new StrictDateRangeSample()
+      sample.startDate = '2026-01-01'
+      sample.endDate = '2026-01-02'
+
+      const errors = await validate(sample)
+      expect(errors).toHaveLength(0)
+    })
+
+    it('fails when endDate equals startDate', async () => {
+      const sample = new StrictDateRangeSample()
+      sample.startDate = '2026-01-01'
+      sample.endDate = '2026-01-01'
+
+      const errors = await validate(sample)
+      expect(errors).toHaveLength(1)
+      expect(errors[0].property).toBe('endDate')
+      expect(errors[0].constraints?.IsAfter).toBe(
+        'endDate must be after startDate',
+      )
+    })
+
+    it('fails when endDate is earlier than startDate', async () => {
+      const sample = new StrictDateRangeSample()
+      sample.startDate = '2026-06-01'
+      sample.endDate = '2026-01-01'
+
+      const errors = await validate(sample)
+      expect(errors).toHaveLength(1)
+      expect(errors[0].property).toBe('endDate')
+      expect(errors[0].constraints?.IsAfter).toBe(
+        'endDate must be after startDate',
+      )
+    })
   })
 })

@@ -6,7 +6,7 @@ import {
   ManyToOne,
   type Relation,
 } from 'typeorm'
-import { AutoIdTimestampCreatedBy } from './common.entity.js'
+import { AutoIdTimestampCreatedBy, formatDateOnly } from './common.entity.js'
 import { LecturerTitle } from '../../../title-appointment/entities/lecturer-title.entity.js'
 import { LecturerDBEntity } from './lecturer.entity.js'
 import { TitleDBEntity } from './title.entity.js'
@@ -14,15 +14,7 @@ import { FacultyDBEntity } from './faculty.entity.js'
 import { ProgramDBEntity } from './program.entity.js'
 import type { CreateLecturerTitleParams } from '../../../title-appointment/use-cases/create-lecturer-title.use-case.js'
 
-export function formatDateOnly(value: string | Date): string {
-  if (typeof value === 'string') {
-    return value.slice(0, 10)
-  }
-  const year = value.getFullYear()
-  const month = String(value.getMonth() + 1).padStart(2, '0')
-  const day = String(value.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+export { formatDateOnly } from './common.entity.js'
 
 @Entity('lecturer_titles')
 @Index('UQ_lecturer_titles_title_faculty_active', ['titleId', 'facultyId'], {

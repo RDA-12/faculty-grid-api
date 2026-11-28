@@ -112,7 +112,8 @@ src/
 ├── organization/                   # Multi-entity module managing organization master data (faculty, program & structural title)
 ├── lecturer/                       # Multi-entity module managing lecturer data (rank, functional rank & lecturer profile)
 ├── title-appointment/              # Single-entity module managing rotatable structural title assignments (lecturer_title)
-└── course/                         # Single-entity module managing courses offered by a program per semester
+├── course/                         # Single-entity module managing courses offered by a program per semester
+└── academic-calendar/              # Multi-entity module managing academic calendar data (academic year & terms)
 
 test/
 ├── helper.ts                       # createTestingApp(), getAccessToken(), auth error assertions

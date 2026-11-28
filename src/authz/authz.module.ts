@@ -13,6 +13,7 @@ import { FunctionalRankPolicy } from '../lecturer/policies/functional-rank.polic
 import { LecturerPolicy } from '../lecturer/policies/lecturer.policy.js'
 import { LecturerTitlePolicy } from '../title-appointment/policies/lecturer-title.policy.js'
 import { CoursePolicy } from '../course/policies/course.policy.js'
+import { AcademicYearPolicy } from '../academic-calendar/policies/academic-year.policy.js'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CoursePolicy } from '../course/policies/course.policy.js'
         LecturerPolicy,
         LecturerTitlePolicy,
         CoursePolicy,
+        AcademicYearPolicy,
       ],
       useFactory: (getRolesByUserIdUseCase: GetRolesByUserIdUseCase) => {
         return {

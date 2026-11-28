@@ -125,6 +125,19 @@ export class AlreadyExistsException extends AppException {
   }
 }
 
+/**
+ * Exception for state or range conflicts (e.g. overlapping dates or duplicate active state)
+ */
+export class ConflictException extends AppException {
+  constructor(message: string) {
+    super({
+      status: 409,
+      title: 'Conflict',
+      detail: message,
+    })
+  }
+}
+
 /** Exception for unexpected error occurred */
 export class UnexpectedException extends AppException {
   constructor(detail: string) {

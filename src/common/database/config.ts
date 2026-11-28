@@ -1,3 +1,4 @@
+import { AcademicYearDBEntity } from './entities/academic-year.entity.js'
 import { CourseDBEntity } from './entities/course.entity.js'
 import { FacultyDBEntity } from './entities/faculty.entity.js'
 import { FunctionalRankDBEntity } from './entities/functional-rank.entity.js'
@@ -32,6 +33,7 @@ export const typeOrmConfig: DataSourceOptions = {
     LecturerDBEntity,
     LecturerTitleDBEntity,
     CourseDBEntity,
+    AcademicYearDBEntity,
   ],
   synchronize: false,
   migrations: [import.meta.dirname + '/migrations/**/*{.js,.ts}'],
