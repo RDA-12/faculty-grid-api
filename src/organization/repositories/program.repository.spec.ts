@@ -15,6 +15,7 @@ import {
   PaginationResult,
 } from '../../common/pagination.js'
 import { GetProgramsParams } from '../user-cases/get-programs.use-case.js'
+import { UpdateProgramParams } from '../user-cases/update-program.use-case.js'
 
 describe('ProgramRepository', () => {
   let params: CreateProgramParams
@@ -213,6 +214,113 @@ describe('ProgramRepository', () => {
               total: 1,
             }),
           }),
+        ),
+      )
+    })
+  })
+
+  describe('update', () => {
+    let secondFacultyDb: FacultyDBEntity
+    let savedProgram: ProgramDBEntity
+
+    beforeAll(async () => {
+      const insertSecondFacultyDb = new FacultyDBEntity()
+      insertSecondFacultyDb.name = 'second faculty'
+      insertSecondFacultyDb.createdBy = userDb.id
+      secondFacultyDb = await dataSource.manager.save(insertSecondFacultyDb)
+    })
+
+    beforeEach(async () => {
+      savedProgram = await dataSource.manager.save(
+        new ProgramDBEntity({
+          name: 'Informatics',
+          degreeLevel: ProgramDegreeLevel.bachelor,
+          facultyId: facultyDb.id,
+          createdBy: userDb.id,
+        }),
+      )
+    })
+
+    it('should update and return updated program', async () => {
+      const result = await programRepository.update(
+        new UpdateProgramParams({
+          id: savedProgram.id,
+          name: 'Computer Science',
+          degreeLevel: ProgramDegreeLevel.master,
+          facultyId: secondFacultyDb.id,
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new Program({
+            id: savedProgram.id,
+            name: 'Computer Science',
+            degreeLevel: ProgramDegreeLevel.master,
+            facultyId: secondFacultyDb.id,
+          }),
+        ),
+      )
+
+      const row = await dataSource.manager.findOneBy(ProgramDBEntity, {
+        id: savedProgram.id,
+      })
+      expect(row?.name).toBe('Computer Science')
+      expect(row?.degreeLevel).toBe(ProgramDegreeLevel.master)
+      expect(row?.facultyId).toBe(secondFacultyDb.id)
+    })
+
+    it('should return NotFoundException when program is not found', async () => {
+      const result = await programRepository.update(
+        new UpdateProgramParams({
+          id: 'not-found',
+          name: 'Computer Science',
+          degreeLevel: ProgramDegreeLevel.master,
+          facultyId: facultyDb.id,
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('program with ID not-found is not found'),
+        ),
+      )
+    })
+
+    it('should return NotFoundException when program is soft-deleted', async () => {
+      await dataSource.manager.softRemove(savedProgram)
+
+      const result = await programRepository.update(
+        new UpdateProgramParams({
+          id: savedProgram.id,
+          name: 'Computer Science',
+          degreeLevel: ProgramDegreeLevel.master,
+          facultyId: facultyDb.id,
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException(
+            `program with ID ${savedProgram.id} is not found`,
+          ),
+        ),
+      )
+    })
+
+    it('should return NotFoundException when faculty is not found', async () => {
+      const result = await programRepository.update(
+        new UpdateProgramParams({
+          id: savedProgram.id,
+          name: 'Computer Science',
+          degreeLevel: ProgramDegreeLevel.master,
+          facultyId: 'not-found',
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('faculty with ID not-found is not found'),
         ),
       )
     })

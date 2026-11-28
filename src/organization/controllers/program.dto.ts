@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { Program, ProgramDegreeLevel } from '../entities/program.entity.js'
 import { PaginationQuery } from '../../common/pagination.js'
 
@@ -20,6 +20,31 @@ export class CreateProgramDTO {
 
   @ApiProperty()
   @IsString()
+  facultyId: string
+}
+
+export class UpdateProgramDTO {
+  constructor(args?: Partial<UpdateProgramDTO>) {
+    if (args) {
+      Object.assign(this, args)
+    }
+  }
+
+  @ApiProperty({ example: 'Computer Science' })
+  @IsString()
+  @IsNotEmpty()
+  name: string
+
+  @ApiProperty({
+    enum: ProgramDegreeLevel,
+    example: ProgramDegreeLevel.bachelor,
+  })
+  @IsEnum(ProgramDegreeLevel)
+  degreeLevel: ProgramDegreeLevel
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   facultyId: string
 }
 

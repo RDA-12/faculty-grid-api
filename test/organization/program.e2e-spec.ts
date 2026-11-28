@@ -221,6 +221,152 @@ describe('Program', () => {
     })
   })
 
+  describe('/PUT programs/:id', () => {
+    let secondFaculty: { id: string }
+    let createdProgram: {
+      id: string
+      name: string
+      degreeLevel: string
+      facultyId: string
+    }
+
+    beforeAll(async () => {
+      const response = await request(app.getHttpServer())
+        .post('/faculties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'second faculty',
+        })
+      secondFaculty = response.body.data
+    })
+
+    beforeEach(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "programs" RESTART IDENTITY CASCADE`,
+      )
+      const response = await request(app.getHttpServer())
+        .post('/programs')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Informatics',
+          degreeLevel: 'bachelor',
+          facultyId: faculty.id,
+        })
+      createdProgram = response.body.data
+    })
+
+    it('should return 200 with updated program and persist changes', async () => {
+      const updatePayload = {
+        name: 'Computer Science',
+        degreeLevel: 'master',
+        facultyId: secondFaculty.id,
+      }
+
+      const response = await request(app.getHttpServer())
+        .put(`/programs/${createdProgram.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(updatePayload)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: {
+          id: createdProgram.id,
+          name: updatePayload.name,
+          degreeLevel: updatePayload.degreeLevel,
+          facultyId: updatePayload.facultyId,
+        },
+      })
+
+      const getResponse = await request(app.getHttpServer())
+        .get('/programs')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(getResponse.statusCode).toBe(200)
+      expect(getResponse.body.data).toEqual([
+        {
+          id: createdProgram.id,
+          name: updatePayload.name,
+          degreeLevel: updatePayload.degreeLevel,
+          facultyId: updatePayload.facultyId,
+        },
+      ])
+    })
+
+    it('should return 404 when program is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .put('/programs/not-found')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Computer Science',
+          degreeLevel: 'master',
+          facultyId: faculty.id,
+        })
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body).toMatchObject({
+        status: 404,
+      })
+    })
+
+    it('should return 404 when faculty is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/programs/${createdProgram.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Computer Science',
+          degreeLevel: 'master',
+          facultyId: 'not-found',
+        })
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body).toMatchObject({
+        status: 404,
+      })
+    })
+
+    it('should return 422 when payload has invalid data', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/programs/${createdProgram.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: '',
+          degreeLevel: 'invalid',
+          facultyId: faculty.id,
+        })
+
+      expect(response.statusCode).toBe(422)
+      expect(response.body).toMatchObject({
+        status: 422,
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/programs/${createdProgram.id}`)
+        .send({
+          name: 'Computer Science',
+          degreeLevel: 'master',
+          facultyId: faculty.id,
+        })
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/programs/${createdProgram.id}`)
+        .set('Authorization', 'Bearer invalid')
+        .send({
+          name: 'Computer Science',
+          degreeLevel: 'master',
+          facultyId: faculty.id,
+        })
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
   describe('/DELETE programs/:id', () => {
     let toBeDeleted: { id: string }
 

@@ -10,6 +10,7 @@ import {
 } from '../../common/app-exception.js'
 import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
 import { GetProgramsParams } from '../user-cases/get-programs.use-case.js'
+import type { UpdateProgramParams } from '../user-cases/update-program.use-case.js'
 
 /**
  * Repository to manage program data
@@ -87,6 +88,40 @@ export class ProgramRepository {
         }),
       }),
     )
+  }
+
+  async update(params: UpdateProgramParams): Promise<AppResult<Program>> {
+    try {
+      this.logger.debug('start updating program', { params })
+      const programDb = await this.repository.findOne({
+        where: { id: params.id },
+      })
+      if (!programDb) {
+        this.logger.debug('program not found for update', { id: params.id })
+        return AppResult.failed(
+          new NotFoundException(`program with ID ${params.id} is not found`),
+        )
+      }
+      programDb.name = params.name
+      programDb.degreeLevel = params.degreeLevel
+      programDb.facultyId = params.facultyId
+      const updated = await this.repository.save(programDb)
+      this.logger.debug('program updated', { data: updated })
+      return AppResult.success(updated.toDomain())
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const code = error.driverError?.code
+        if (code === '23503') {
+          return AppResult.failed(
+            new NotFoundException(
+              `faculty with ID ${params.facultyId} is not found`,
+            ),
+          )
+        }
+      }
+      this.logger.error('failed to update program', { error })
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
+    }
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {

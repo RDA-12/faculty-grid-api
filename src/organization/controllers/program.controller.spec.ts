@@ -2,7 +2,12 @@ import { Test } from '@nestjs/testing'
 import { User } from '../../user/entities/user.entity.js'
 import { Program, ProgramDegreeLevel } from '../entities/program.entity.js'
 import { ProgramController } from './program.controller.js'
-import { CreateProgramDTO, ProgramOut, ProgramsQuery } from './program.dto.js'
+import {
+  CreateProgramDTO,
+  ProgramOut,
+  ProgramsQuery,
+  UpdateProgramDTO,
+} from './program.dto.js'
 import {
   CreateProgramParams,
   CreateProgramUseCase,
@@ -19,6 +24,10 @@ import {
   GetProgramsParams,
   GetProgramsUseCase,
 } from '../user-cases/get-programs.use-case.js'
+import {
+  UpdateProgramParams,
+  UpdateProgramUseCase,
+} from '../user-cases/update-program.use-case.js'
 import { DeleteProgramUseCase } from '../user-cases/delete-program.use-case.js'
 
 describe('ProgramController', () => {
@@ -44,6 +53,7 @@ describe('ProgramController', () => {
   const programOut = ProgramOut.fromProgram(program)
   let createProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let getProgramsUseCase: { execute: ReturnType<typeof vi.fn> }
+  let updateProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let deleteProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let programController: ProgramController
 
@@ -66,6 +76,12 @@ describe('ProgramController', () => {
           },
         },
         {
+          provide: UpdateProgramUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(program)),
+          },
+        },
+        {
           provide: DeleteProgramUseCase,
           useValue: {
             execute: vi.fn().mockResolvedValue(AppResult.success(null)),
@@ -80,6 +96,7 @@ describe('ProgramController', () => {
 
     createProgramUseCase = moduleRef.get(CreateProgramUseCase)
     getProgramsUseCase = moduleRef.get(GetProgramsUseCase)
+    updateProgramUseCase = moduleRef.get(UpdateProgramUseCase)
     deleteProgramUseCase = moduleRef.get(DeleteProgramUseCase)
 
     programController = moduleRef.get(ProgramController)
@@ -190,6 +207,57 @@ describe('ProgramController', () => {
       )
 
       const result = await programController.getPrograms(user)
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('updateProgram', () => {
+    const updateProgramRequest = new UpdateProgramDTO({
+      name: 'Computer Science',
+      degreeLevel: ProgramDegreeLevel.master,
+      facultyId: 'facultyId',
+    })
+    const params = new UpdateProgramParams({
+      id: 'program-id',
+      name: updateProgramRequest.name,
+      degreeLevel: updateProgramRequest.degreeLevel,
+      facultyId: updateProgramRequest.facultyId,
+    })
+
+    it('calls UpdateProgramUseCase once', async () => {
+      await programController.updateProgram(
+        user,
+        'program-id',
+        updateProgramRequest,
+      )
+
+      expect(updateProgramUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        params,
+      )
+    })
+
+    it('should return ProgramOut when UpdateProgramUseCase succeeds', async () => {
+      const result = await programController.updateProgram(
+        user,
+        'program-id',
+        updateProgramRequest,
+      )
+
+      expect(result).toStrictEqual(AppResult.success(programOut))
+    })
+
+    it('should return failed when UpdateProgramUseCase fails', async () => {
+      const e = AppException.test()
+      vi.spyOn(updateProgramUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await programController.updateProgram(
+        user,
+        'program-id',
+        updateProgramRequest,
+      )
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })
