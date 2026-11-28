@@ -31,13 +31,21 @@ export class CreateLecturerTitleDTO {
   @IsNotEmpty()
   titleId: string
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   facultyId?: string | null
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -79,13 +87,21 @@ export class UpdateLecturerTitleDTO {
   @IsNotEmpty()
   titleId: string
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   facultyId?: string | null
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -129,12 +145,18 @@ export class LecturerTitleOut {
   @IsString()
   titleId: string
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
   @IsString()
   @IsOptional()
   facultyId: string | null
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
   @IsString()
   @IsOptional()
   programId: string | null
