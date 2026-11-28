@@ -43,6 +43,7 @@ export class CreateLecturerDTO {
   employmentStatus: EmploymentStatus
 
   @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
     description:
@@ -59,6 +60,7 @@ export class CreateLecturerDTO {
   rankId?: string | null
 
   @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
@@ -102,6 +104,7 @@ export class UpdateLecturerDTO {
   employmentStatus: EmploymentStatus
 
   @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
     description:
@@ -118,6 +121,7 @@ export class UpdateLecturerDTO {
   rankId?: string | null
 
   @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
@@ -158,12 +162,18 @@ export class LecturerOut {
   @IsEnum(EmploymentStatus)
   employmentStatus: EmploymentStatus
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
   @IsString()
   @IsOptional()
   rankId: string | null
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
   @IsString()
   @IsOptional()
   functionalRankId: string | null
