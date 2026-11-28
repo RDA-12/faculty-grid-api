@@ -1,5 +1,7 @@
 import { FacultyDBEntity } from './entities/faculty.entity.js'
+import { FunctionalRankDBEntity } from './entities/functional-rank.entity.js'
 import { ProgramDBEntity } from './entities/program.entity.js'
+import { RankDBEntity } from './entities/rank.entity.js'
 import { RefreshTokenDBEntity } from './entities/refresh-token.entity.js'
 import { TitleDBEntity } from './entities/title.entity.js'
 import { UserCredentialDBEntity } from './entities/user-credential.entity.js'
@@ -22,6 +24,8 @@ export const typeOrmConfig: DataSourceOptions = {
     FacultyDBEntity,
     ProgramDBEntity,
     TitleDBEntity,
+    RankDBEntity,
+    FunctionalRankDBEntity,
   ],
   synchronize: false,
   migrations: [import.meta.dirname + '/migrations/**/*{.js,.ts}'],

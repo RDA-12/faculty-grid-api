@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config'
 import { appConfig } from './common/config.js'
 import { AuthzModule } from './authz/authz.module.js'
 import { OrganizationModule } from './organization/organization.module.js'
+import { LecturerModule } from './lecturer/lecturer.module.js'
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { OrganizationModule } from './organization/organization.module.js'
     }),
     AuthzModule,
     OrganizationModule,
+    LecturerModule,
   ],
 })
 export class AppModule {}

@@ -8,12 +8,20 @@ import { AuthzUser } from './entities/authz-user.js'
 import { FacultyPolicy } from '../organization/policies/faculty.policy.js'
 import { ProgramPolicy } from '../organization/policies/program.policy.js'
 import { TitlePolicy } from '../organization/policies/title.policy.js'
+import { RankPolicy } from '../lecturer/policies/rank.policy.js'
+import { FunctionalRankPolicy } from '../lecturer/policies/functional-rank.policy.js'
 
 @Module({
   imports: [
     AuthorizationModule.forRootAsync({
       imports: [AuthzModule],
-      policies: [FacultyPolicy, ProgramPolicy, TitlePolicy],
+      policies: [
+        FacultyPolicy,
+        ProgramPolicy,
+        TitlePolicy,
+        RankPolicy,
+        FunctionalRankPolicy,
+      ],
       useFactory: (getRolesByUserIdUseCase: GetRolesByUserIdUseCase) => {
         return {
           getUser: async (context) => {
