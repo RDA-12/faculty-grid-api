@@ -90,6 +90,21 @@ export class ProgramRepository {
     )
   }
 
+  async getById(id: string): Promise<AppResult<Program>> {
+    this.logger.debug('start getting program by id', { id })
+    const programDb = await this.repository.findOne({
+      where: { id },
+    })
+    if (!programDb) {
+      this.logger.debug('program not found', { id })
+      return AppResult.failed(
+        new NotFoundException(`program with ID ${id} is not found`),
+      )
+    }
+    this.logger.debug('program obtained', { data: programDb })
+    return AppResult.success(programDb.toDomain())
+  }
+
   async update(params: UpdateProgramParams): Promise<AppResult<Program>> {
     try {
       this.logger.debug('start updating program', { params })

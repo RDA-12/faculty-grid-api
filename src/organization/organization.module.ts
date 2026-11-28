@@ -10,6 +10,7 @@ import { ProgramController } from './controllers/program.controller.js'
 import { ProgramRepository } from './repositories/program.repository.js'
 import { CreateProgramUseCase } from './user-cases/create-program.use-case.js'
 import { GetProgramsUseCase } from './user-cases/get-programs.use-case.js'
+import { GetProgramByIdUseCase } from './user-cases/get-program-by-id.use-case.js'
 import { UpdateProgramUseCase } from './user-cases/update-program.use-case.js'
 import { DeleteProgramUseCase } from './user-cases/delete-program.use-case.js'
 import { TitleController } from './controllers/title.controller.js'
@@ -36,6 +37,7 @@ import { DeleteTitleUseCase } from './user-cases/delete-title.use-case.js'
     DeleteFacultyUseCase,
     CreateProgramUseCase,
     GetProgramsUseCase,
+    GetProgramByIdUseCase,
     UpdateProgramUseCase,
     DeleteProgramUseCase,
     CreateTitleUseCase,

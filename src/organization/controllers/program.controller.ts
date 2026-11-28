@@ -36,6 +36,7 @@ import {
   GetProgramsParams,
   GetProgramsUseCase,
 } from '../user-cases/get-programs.use-case.js'
+import { GetProgramByIdUseCase } from '../user-cases/get-program-by-id.use-case.js'
 import {
   UpdateProgramParams,
   UpdateProgramUseCase,
@@ -48,6 +49,7 @@ export class ProgramController {
   constructor(
     private readonly createProgramUseCase: CreateProgramUseCase,
     private readonly getProgramsUseCase: GetProgramsUseCase,
+    private readonly getProgramByIdUseCase: GetProgramByIdUseCase,
     private readonly updateProgramUseCase: UpdateProgramUseCase,
     private readonly deleteProgramUseCase: DeleteProgramUseCase,
   ) {
@@ -119,6 +121,35 @@ export class ProgramController {
     return AppResult.success(
       result.data!.mapData((it) => ProgramOut.fromProgram(it)),
     )
+  }
+
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Program obtained successfully',
+    model: ProgramOut,
+  })
+  @ApiFailedResponse({
+    status: 404,
+    description: 'Program cannot be found',
+  })
+  @Anyone()
+  @Get(':id')
+  async getProgramById(
+    @CurrentUser() _user: User,
+    @Param('id') id: string,
+  ): Promise<AppResult<ProgramOut>> {
+    this.logger.debug('delegating get program by id to GetProgramByIdUseCase', {
+      id,
+    })
+    const result = await this.getProgramByIdUseCase.execute(id)
+    if (result.exception) {
+      this.logger.debug('failed to get program by id', {
+        error: result.exception,
+      })
+      return AppResult.failed(result.exception)
+    }
+    this.logger.debug('program obtained', { data: result.data })
+    return AppResult.success(ProgramOut.fromProgram(result.data!))
   }
 
   @ApiSuccessResponse({

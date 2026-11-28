@@ -24,6 +24,7 @@ import {
   GetProgramsParams,
   GetProgramsUseCase,
 } from '../user-cases/get-programs.use-case.js'
+import { GetProgramByIdUseCase } from '../user-cases/get-program-by-id.use-case.js'
 import {
   UpdateProgramParams,
   UpdateProgramUseCase,
@@ -53,6 +54,7 @@ describe('ProgramController', () => {
   const programOut = ProgramOut.fromProgram(program)
   let createProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let getProgramsUseCase: { execute: ReturnType<typeof vi.fn> }
+  let getProgramByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let updateProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let deleteProgramUseCase: { execute: ReturnType<typeof vi.fn> }
   let programController: ProgramController
@@ -76,6 +78,12 @@ describe('ProgramController', () => {
           },
         },
         {
+          provide: GetProgramByIdUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(program)),
+          },
+        },
+        {
           provide: UpdateProgramUseCase,
           useValue: {
             execute: vi.fn().mockResolvedValue(AppResult.success(program)),
@@ -96,6 +104,7 @@ describe('ProgramController', () => {
 
     createProgramUseCase = moduleRef.get(CreateProgramUseCase)
     getProgramsUseCase = moduleRef.get(GetProgramsUseCase)
+    getProgramByIdUseCase = moduleRef.get(GetProgramByIdUseCase)
     updateProgramUseCase = moduleRef.get(UpdateProgramUseCase)
     deleteProgramUseCase = moduleRef.get(DeleteProgramUseCase)
 
@@ -207,6 +216,33 @@ describe('ProgramController', () => {
       )
 
       const result = await programController.getPrograms(user)
+
+      expect(result).toStrictEqual(AppResult.failed(e))
+    })
+  })
+
+  describe('getProgramById', () => {
+    it('calls GetProgramByIdUseCase once', async () => {
+      await programController.getProgramById(user, 'program-id')
+
+      expect(getProgramByIdUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        'program-id',
+      )
+    })
+
+    it('should return ProgramOut when GetProgramByIdUseCase succeeds', async () => {
+      const result = await programController.getProgramById(user, 'program-id')
+
+      expect(result).toStrictEqual(AppResult.success(programOut))
+    })
+
+    it('should return failed when GetProgramByIdUseCase fails', async () => {
+      const e = AppException.test()
+      vi.spyOn(getProgramByIdUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await programController.getProgramById(user, 'program-id')
 
       expect(result).toStrictEqual(AppResult.failed(e))
     })

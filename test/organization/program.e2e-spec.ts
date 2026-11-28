@@ -221,6 +221,69 @@ describe('Program', () => {
     })
   })
 
+  describe('/GET programs/:id', () => {
+    let createdProgram: {
+      id: string
+      name: string
+      degreeLevel: string
+      facultyId: string
+    }
+
+    beforeAll(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "programs" RESTART IDENTITY CASCADE`,
+      )
+      const response = await request(app.getHttpServer())
+        .post('/programs')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Informatics',
+          degreeLevel: 'bachelor',
+          facultyId: faculty.id,
+        })
+      createdProgram = response.body.data
+    })
+
+    it('should return 200 with program when found', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/programs/${createdProgram.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: createdProgram,
+      })
+    })
+
+    it('should return 404 when program is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/programs/not-found')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body).toMatchObject({
+        status: 404,
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/programs/${createdProgram.id}`,
+      )
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/programs/${createdProgram.id}`)
+        .set('Authorization', 'Bearer invalid')
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
   describe('/PUT programs/:id', () => {
     let secondFaculty: { id: string }
     let createdProgram: {

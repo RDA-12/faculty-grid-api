@@ -219,6 +219,51 @@ describe('ProgramRepository', () => {
     })
   })
 
+  describe('getById', () => {
+    let savedProgram: ProgramDBEntity
+
+    beforeEach(async () => {
+      savedProgram = await dataSource.manager.save(
+        new ProgramDBEntity({
+          name: 'Informatics',
+          degreeLevel: ProgramDegreeLevel.bachelor,
+          facultyId: facultyDb.id,
+          createdBy: userDb.id,
+        }),
+      )
+    })
+
+    it('should return program when found', async () => {
+      const result = await programRepository.getById(savedProgram.id)
+
+      expect(result).toStrictEqual(AppResult.success(savedProgram.toDomain()))
+    })
+
+    it('should return NotFoundException when program is not found', async () => {
+      const result = await programRepository.getById('not-found')
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('program with ID not-found is not found'),
+        ),
+      )
+    })
+
+    it('should return NotFoundException when program is soft-deleted', async () => {
+      await dataSource.manager.softRemove(savedProgram)
+
+      const result = await programRepository.getById(savedProgram.id)
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException(
+            `program with ID ${savedProgram.id} is not found`,
+          ),
+        ),
+      )
+    })
+  })
+
   describe('update', () => {
     let secondFacultyDb: FacultyDBEntity
     let savedProgram: ProgramDBEntity
