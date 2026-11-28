@@ -11,7 +11,7 @@ import { TitlePolicy } from '../organization/policies/title.policy.js'
 import { RankPolicy } from '../lecturer/policies/rank.policy.js'
 import { FunctionalRankPolicy } from '../lecturer/policies/functional-rank.policy.js'
 import { LecturerPolicy } from '../lecturer/policies/lecturer.policy.js'
-import { LecturerTitlePolicy } from '../lecturer/policies/lecturer-title.policy.js'
+import { LecturerTitlePolicy } from '../title-appointment/policies/lecturer-title.policy.js'
 
 @Module({
   imports: [

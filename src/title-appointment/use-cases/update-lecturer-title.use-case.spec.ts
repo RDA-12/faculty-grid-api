@@ -12,9 +12,9 @@ import {
   AcademicDegree,
   EmploymentStatus,
   Lecturer,
-} from '../entities/lecturer.entity.js'
+} from '../../lecturer/entities/lecturer.entity.js'
 import { LecturerTitle } from '../entities/lecturer-title.entity.js'
-import { LecturerRepository } from '../repositories/lecturer.repository.js'
+import { GetLecturerByIdUseCase } from '../../lecturer/use-cases/get-lecturer-by-id.use-case.js'
 import { LecturerTitleRepository } from '../repositories/lecturer-title.repository.js'
 import {
   UpdateLecturerTitleParams,
@@ -48,7 +48,7 @@ describe('UpdateLecturerTitleUseCase', () => {
   })
 
   let lecturerTitleRepository: { update: ReturnType<typeof vi.fn> }
-  let lecturerRepository: { getById: ReturnType<typeof vi.fn> }
+  let getLecturerByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let getTitleByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let updateLecturerTitleUseCase: UpdateLecturerTitleUseCase
 
@@ -62,9 +62,9 @@ describe('UpdateLecturerTitleUseCase', () => {
           },
         },
         {
-          provide: LecturerRepository,
+          provide: GetLecturerByIdUseCase,
           useValue: {
-            getById: vi.fn().mockResolvedValue(AppResult.success(lecturer)),
+            execute: vi.fn().mockResolvedValue(AppResult.success(lecturer)),
           },
         },
         {
@@ -78,7 +78,7 @@ describe('UpdateLecturerTitleUseCase', () => {
     }).compile()
 
     lecturerTitleRepository = moduleRef.get(LecturerTitleRepository)
-    lecturerRepository = moduleRef.get(LecturerRepository)
+    getLecturerByIdUseCase = moduleRef.get(GetLecturerByIdUseCase)
     getTitleByIdUseCase = moduleRef.get(GetTitleByIdUseCase)
     updateLecturerTitleUseCase = moduleRef.get(UpdateLecturerTitleUseCase)
   })
@@ -155,7 +155,7 @@ describe('UpdateLecturerTitleUseCase', () => {
 
   it('should propagate NotFoundException when lecturer or title is missing', async () => {
     const notFound = new NotFoundException('missing')
-    vi.spyOn(lecturerRepository, 'getById').mockResolvedValueOnce(
+    vi.spyOn(getLecturerByIdUseCase, 'execute').mockResolvedValueOnce(
       AppResult.failed(notFound),
     )
     const params = new UpdateLecturerTitleParams({

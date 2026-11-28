@@ -7,6 +7,7 @@ import { appConfig } from './common/config.js'
 import { AuthzModule } from './authz/authz.module.js'
 import { OrganizationModule } from './organization/organization.module.js'
 import { LecturerModule } from './lecturer/lecturer.module.js'
+import { TitleAppointmentModule } from './title-appointment/title-appointment.module.js'
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LecturerModule } from './lecturer/lecturer.module.js'
     AuthzModule,
     OrganizationModule,
     LecturerModule,
+    TitleAppointmentModule,
   ],
 })
 export class AppModule {}

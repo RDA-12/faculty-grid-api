@@ -12,9 +12,9 @@ import {
   AcademicDegree,
   EmploymentStatus,
   Lecturer,
-} from '../entities/lecturer.entity.js'
+} from '../../lecturer/entities/lecturer.entity.js'
 import { LecturerTitle } from '../entities/lecturer-title.entity.js'
-import { LecturerRepository } from '../repositories/lecturer.repository.js'
+import { GetLecturerByIdUseCase } from '../../lecturer/use-cases/get-lecturer-by-id.use-case.js'
 import { LecturerTitleRepository } from '../repositories/lecturer-title.repository.js'
 import {
   CreateLecturerTitleParams,
@@ -53,7 +53,7 @@ describe('CreateLecturerTitleUseCase', () => {
   })
 
   let lecturerTitleRepository: { save: ReturnType<typeof vi.fn> }
-  let lecturerRepository: { getById: ReturnType<typeof vi.fn> }
+  let getLecturerByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let getTitleByIdUseCase: { execute: ReturnType<typeof vi.fn> }
   let createLecturerTitleUseCase: CreateLecturerTitleUseCase
 
@@ -67,9 +67,9 @@ describe('CreateLecturerTitleUseCase', () => {
           },
         },
         {
-          provide: LecturerRepository,
+          provide: GetLecturerByIdUseCase,
           useValue: {
-            getById: vi.fn().mockResolvedValue(AppResult.success(lecturer)),
+            execute: vi.fn().mockResolvedValue(AppResult.success(lecturer)),
           },
         },
         {
@@ -83,7 +83,7 @@ describe('CreateLecturerTitleUseCase', () => {
     }).compile()
 
     lecturerTitleRepository = moduleRef.get(LecturerTitleRepository)
-    lecturerRepository = moduleRef.get(LecturerRepository)
+    getLecturerByIdUseCase = moduleRef.get(GetLecturerByIdUseCase)
     getTitleByIdUseCase = moduleRef.get(GetTitleByIdUseCase)
     createLecturerTitleUseCase = moduleRef.get(CreateLecturerTitleUseCase)
   })
@@ -99,7 +99,7 @@ describe('CreateLecturerTitleUseCase', () => {
 
     const result = await createLecturerTitleUseCase.execute(params)
 
-    expect(lecturerRepository.getById).toHaveBeenCalledExactlyOnceWith(
+    expect(getLecturerByIdUseCase.execute).toHaveBeenCalledExactlyOnceWith(
       lecturer.id,
     )
     expect(getTitleByIdUseCase.execute).toHaveBeenCalledExactlyOnceWith(
@@ -153,7 +153,7 @@ describe('CreateLecturerTitleUseCase', () => {
 
   it('should propagate NotFoundException when lecturerId does not exist', async () => {
     const notFound = new NotFoundException('lecturer not found')
-    vi.spyOn(lecturerRepository, 'getById').mockResolvedValueOnce(
+    vi.spyOn(getLecturerByIdUseCase, 'execute').mockResolvedValueOnce(
       AppResult.failed(notFound),
     )
     const params = new CreateLecturerTitleParams({

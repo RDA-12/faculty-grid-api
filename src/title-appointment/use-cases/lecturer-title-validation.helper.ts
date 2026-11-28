@@ -5,7 +5,7 @@ import {
 import { AppResult } from '../../common/app-result.js'
 import { TitleScope } from '../../organization/entities/title.entity.js'
 import type { GetTitleByIdUseCase } from '../../organization/user-cases/get-title-by-id.use-case.js'
-import type { LecturerRepository } from '../repositories/lecturer.repository.js'
+import type { GetLecturerByIdUseCase } from '../../lecturer/use-cases/get-lecturer-by-id.use-case.js'
 
 type LecturerTitleAssignmentParams = {
   lecturerId: string
@@ -21,7 +21,7 @@ type LecturerTitleAssignmentParams = {
  */
 export async function validateLecturerTitleAssignment(
   params: LecturerTitleAssignmentParams,
-  lecturerRepository: LecturerRepository,
+  getLecturerByIdUseCase: GetLecturerByIdUseCase,
   getTitleByIdUseCase: GetTitleByIdUseCase,
 ): Promise<AppResult<null>> {
   if (params.endDate !== null && params.endDate < params.startDate) {
@@ -36,7 +36,7 @@ export async function validateLecturerTitleAssignment(
     )
   }
 
-  const lecturerResult = await lecturerRepository.getById(params.lecturerId)
+  const lecturerResult = await getLecturerByIdUseCase.execute(params.lecturerId)
   if (lecturerResult.exception) {
     return AppResult.failed(lecturerResult.exception)
   }

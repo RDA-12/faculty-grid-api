@@ -7,12 +7,12 @@ import {
   type Relation,
 } from 'typeorm'
 import { AutoIdTimestampCreatedBy } from './common.entity.js'
-import { LecturerTitle } from '../../../lecturer/entities/lecturer-title.entity.js'
+import { LecturerTitle } from '../../../title-appointment/entities/lecturer-title.entity.js'
 import { LecturerDBEntity } from './lecturer.entity.js'
 import { TitleDBEntity } from './title.entity.js'
 import { FacultyDBEntity } from './faculty.entity.js'
 import { ProgramDBEntity } from './program.entity.js'
-import type { CreateLecturerTitleParams } from '../../../lecturer/use-cases/create-lecturer-title.use-case.js'
+import type { CreateLecturerTitleParams } from '../../../title-appointment/use-cases/create-lecturer-title.use-case.js'
 
 export function formatDateOnly(value: string | Date): string {
   if (typeof value === 'string') {

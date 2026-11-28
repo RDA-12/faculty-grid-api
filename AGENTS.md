@@ -84,7 +84,7 @@ This project is an ESM (`"type": "module"`, `"module": "nodenext"`) NestJS 12 RE
 
 # Project Structure
 
-The codebase is organized into **feature-based modules** under `src/` and shared infrastructure under `src/common/`. Some modules manage multiple closely related entities (e.g., `organization` manages `faculty`, `program`, and structural `title`; `lecturer` manages `rank`, `functional_rank`, `lecturer`, and `lecturer_title`), while others manage a single entity (e.g., `user` manages only `user`).
+The codebase is organized into **feature-based modules** under `src/` and shared infrastructure under `src/common/`. Some modules manage multiple closely related entities (e.g., `organization` manages `faculty`, `program`, and structural `title`; `lecturer` manages `rank`, `functional_rank`, and `lecturer`), while others manage a single entity (e.g., `user` manages only `user`, `title-appointment` manages `lecturer_title`).
 
 ```text
 src/
@@ -110,7 +110,8 @@ src/
 ├── authz/                          # Authorization (roles, user-roles, AuthorizationModule, @RequiredPermisson, @Anyone)
 ├── user/                           # Single-entity module managing users only (credentials live in auth)
 ├── organization/                   # Multi-entity module managing organization master data (faculty, program & structural title)
-└── lecturer/                       # Multi-entity module managing lecturer data (rank, functional rank, lecturer profile & rotatable title assignments)
+├── lecturer/                       # Multi-entity module managing lecturer data (rank, functional rank & lecturer profile)
+└── title-appointment/              # Single-entity module managing rotatable structural title assignments (lecturer_title)
 
 test/
 ├── helper.ts                       # createTestingApp(), getAccessToken(), auth error assertions

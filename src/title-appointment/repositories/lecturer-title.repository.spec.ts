@@ -11,7 +11,7 @@ import { TitleScope } from '../../organization/entities/title.entity.js'
 import {
   AcademicDegree,
   EmploymentStatus,
-} from '../entities/lecturer.entity.js'
+} from '../../lecturer/entities/lecturer.entity.js'
 import { LecturerTitle } from '../entities/lecturer-title.entity.js'
 import { createTestDataSource } from '../../../test/common/database/test-database.js'
 import { LecturerTitleRepository } from './lecturer-title.repository.js'
