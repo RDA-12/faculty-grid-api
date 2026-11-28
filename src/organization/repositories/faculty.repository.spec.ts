@@ -15,6 +15,7 @@ import {
 import { ProgramDBEntity } from '../../common/database/entities/program.entity.js'
 import { ProgramDegreeLevel } from '../entities/program.entity.js'
 import { GetFacultiesParams } from '../user-cases/get-faculties.use-case.js'
+import { UpdateFacultyParams } from '../user-cases/update-faculty.use-case.js'
 
 describe('FacultyRepository', () => {
   let userDb: UserDBEntity
@@ -144,6 +145,74 @@ describe('FacultyRepository', () => {
               total: 1,
             }),
           }),
+        ),
+      )
+    })
+  })
+
+  describe('update', () => {
+    let savedFaculty: FacultyDBEntity
+
+    beforeEach(async () => {
+      const facultyInsertDB = new FacultyDBEntity()
+      facultyInsertDB.name = 'Faculty of Science'
+      facultyInsertDB.createdBy = userDb.id
+      savedFaculty = await dataSource.manager.save(facultyInsertDB)
+    })
+
+    it('should update and return updated faculty', async () => {
+      const result = await facultyRepository.update(
+        new UpdateFacultyParams({
+          id: savedFaculty.id,
+          name: 'Updated Faculty',
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.success(
+          new Faculty({
+            id: savedFaculty.id,
+            name: 'Updated Faculty',
+          }),
+        ),
+      )
+
+      const row = await dataSource.manager.findOneBy(FacultyDBEntity, {
+        id: savedFaculty.id,
+      })
+      expect(row?.name).toBe('Updated Faculty')
+    })
+
+    it('should return NotFoundException when faculty is not found', async () => {
+      const result = await facultyRepository.update(
+        new UpdateFacultyParams({
+          id: 'not-found',
+          name: 'Updated Faculty',
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException('faculty with ID not-found is not found'),
+        ),
+      )
+    })
+
+    it('should return NotFoundException when faculty is soft-deleted', async () => {
+      await dataSource.manager.softRemove(savedFaculty)
+
+      const result = await facultyRepository.update(
+        new UpdateFacultyParams({
+          id: savedFaculty.id,
+          name: 'Updated Faculty',
+        }),
+      )
+
+      expect(result).toStrictEqual(
+        AppResult.failed(
+          new NotFoundException(
+            `faculty with ID ${savedFaculty.id} is not found`,
+          ),
         ),
       )
     })

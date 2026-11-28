@@ -8,6 +8,7 @@ import {
   CreateFacultyDTO,
   FacultyOut,
   GetFacultiesQuery,
+  UpdateFacultyDTO,
 } from './faculty.dto.js'
 import {
   CreateFacultyParams,
@@ -18,6 +19,10 @@ import {
   GetFacultiesParams,
   GetFacultiesUseCase,
 } from '../user-cases/get-faculties.use-case.js'
+import {
+  UpdateFacultyParams,
+  UpdateFacultyUseCase,
+} from '../user-cases/update-faculty.use-case.js'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 import {
   PaginatedResult,
@@ -46,6 +51,7 @@ describe('FacultyController', () => {
   })
   let createFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let getFacultiesUseCase: { execute: ReturnType<typeof vi.fn> }
+  let updateFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let deleteFacultyUseCase: { execute: ReturnType<typeof vi.fn> }
   let facultyController: FacultyController
 
@@ -68,6 +74,12 @@ describe('FacultyController', () => {
           },
         },
         {
+          provide: UpdateFacultyUseCase,
+          useValue: {
+            execute: vi.fn().mockResolvedValue(AppResult.success(faculty)),
+          },
+        },
+        {
           provide: DeleteFacultyUseCase,
           useValue: {
             execute: vi.fn().mockResolvedValue(AppResult.success(null)),
@@ -82,6 +94,7 @@ describe('FacultyController', () => {
 
     createFacultyUseCase = moduleRef.get(CreateFacultyUseCase)
     getFacultiesUseCase = moduleRef.get(GetFacultiesUseCase)
+    updateFacultyUseCase = moduleRef.get(UpdateFacultyUseCase)
     deleteFacultyUseCase = moduleRef.get(DeleteFacultyUseCase)
 
     facultyController = moduleRef.get(FacultyController)
@@ -179,6 +192,53 @@ describe('FacultyController', () => {
       expect(getFacultiesUseCase.execute).toHaveBeenCalledExactlyOnceWith(
         new GetFacultiesParams({ search: 'search' }),
       )
+    })
+  })
+
+  describe('updateFaculty', () => {
+    const updateFacultyRequest = new UpdateFacultyDTO({
+      name: 'Updated Faculty',
+    })
+    const params = new UpdateFacultyParams({
+      id: 'faculty-id',
+      name: updateFacultyRequest.name,
+    })
+
+    it('calls UpdateFacultyUseCase once', async () => {
+      await facultyController.updateFaculty(
+        user,
+        'faculty-id',
+        updateFacultyRequest,
+      )
+
+      expect(updateFacultyUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+        params,
+      )
+    })
+
+    it('should return FacultyOut when UpdateFacultyUseCase succeeds', async () => {
+      const result = await facultyController.updateFaculty(
+        user,
+        'faculty-id',
+        updateFacultyRequest,
+      )
+
+      expect(result).toStrictEqual(AppResult.success(facultyOut))
+    })
+
+    it('should return failed when UpdateFacultyUseCase fails', async () => {
+      const e = AppException.test()
+      vi.spyOn(updateFacultyUseCase, 'execute').mockResolvedValueOnce(
+        AppResult.failed(e),
+      )
+
+      const result = await facultyController.updateFaculty(
+        user,
+        'faculty-id',
+        updateFacultyRequest,
+      )
+
+      expect(result).toStrictEqual(AppResult.failed(e))
     })
   })
 

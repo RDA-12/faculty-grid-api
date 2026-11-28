@@ -164,6 +164,110 @@ describe('Faculty', () => {
     })
   })
 
+  describe('/PUT faculties/:id', () => {
+    let createdFaculty: { id: string; name: string }
+
+    beforeEach(async () => {
+      await dataSource.query(
+        `TRUNCATE TABLE "faculties" RESTART IDENTITY CASCADE`,
+      )
+      const response = await request(app.getHttpServer())
+        .post('/faculties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Faculty of Science',
+        })
+      createdFaculty = response.body.data
+    })
+
+    it('should return 200 with updated faculty and persist changes', async () => {
+      const updatePayload = {
+        name: 'Faculty of Engineering',
+      }
+
+      const response = await request(app.getHttpServer())
+        .put(`/faculties/${createdFaculty.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(updatePayload)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        status: 200,
+        data: {
+          id: createdFaculty.id,
+          name: updatePayload.name,
+        },
+      })
+
+      const getResponse = await request(app.getHttpServer())
+        .get('/faculties')
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      expect(getResponse.statusCode).toBe(200)
+      expect(getResponse.body.data).toEqual([
+        {
+          id: createdFaculty.id,
+          name: updatePayload.name,
+        },
+      ])
+    })
+
+    it('should return 404 when faculty is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .put('/faculties/not-found')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Faculty of Engineering',
+        })
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body).toMatchObject({
+        status: 404,
+      })
+    })
+
+    it('should return 422 when payload has empty name', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/faculties/${createdFaculty.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: '',
+        })
+
+      expect(response.statusCode).toBe(422)
+      expect(response.body).toMatchObject({
+        status: 422,
+        errors: [
+          {
+            property: 'name',
+            value: '',
+          },
+        ],
+      })
+    })
+
+    it('should return 401 when Auth header is missing', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/faculties/${createdFaculty.id}`)
+        .send({
+          name: 'Faculty of Engineering',
+        })
+
+      excpectResponseMissingAuth(response)
+    })
+
+    it('should return 401 when Auth header is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/faculties/${createdFaculty.id}`)
+        .set('Authorization', 'Bearer invalid')
+        .send({
+          name: 'Faculty of Engineering',
+        })
+
+      excpectResponseInvalidAuth(response)
+    })
+  })
+
   describe('/DELETE faculties/:id', () => {
     let toBeDeleted: { id: string }
 

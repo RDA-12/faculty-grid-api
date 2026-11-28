@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Post,
+  Put,
   Query,
 } from '@nestjs/common'
 import {
@@ -17,11 +18,13 @@ import {
   CreateFacultyDTO,
   FacultyOut,
   GetFacultiesQuery,
+  UpdateFacultyDTO,
 } from './faculty.dto.js'
 import { AppResult } from '../../common/app-result.js'
 import { CurrentUser } from '@nestjs/authentication'
 import { User } from '../../user/entities/user.entity.js'
 import {
+  ApiFailedResponse,
   ApiInvalidRequestResponse,
   ApiSuccessResponse,
 } from '../../common/app-response.js'
@@ -31,6 +34,10 @@ import {
   GetFacultiesParams,
   GetFacultiesUseCase,
 } from '../user-cases/get-faculties.use-case.js'
+import {
+  UpdateFacultyParams,
+  UpdateFacultyUseCase,
+} from '../user-cases/update-faculty.use-case.js'
 import { ApiNoContentResponse } from '@nestjs/swagger'
 import { DeleteFacultyUseCase } from '../user-cases/delete-faculty.use-case.js'
 import { Anyone } from '../../authz/decorators/anyone.decorator.js'
@@ -41,6 +48,7 @@ export class FacultyController {
   constructor(
     private readonly createFacultyUseCase: CreateFacultyUseCase,
     private readonly GetFacultiesUseCase: GetFacultiesUseCase,
+    private readonly updateFacultyUseCase: UpdateFacultyUseCase,
     private readonly deleteFacultyUseCase: DeleteFacultyUseCase,
   ) {
     this.logger = new Logger('FacultyController')
@@ -108,6 +116,45 @@ export class FacultyController {
     return AppResult.success(
       result.data!.mapData((it) => FacultyOut.fromFaculty(it)),
     )
+  }
+
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Faculty updated successfully',
+    model: FacultyOut,
+  })
+  @ApiFailedResponse({
+    status: 404,
+    description: 'Faculty cannot be found',
+  })
+  @ApiInvalidRequestResponse({
+    description: 'Invalid data on the body',
+  })
+  @RequiredPermisson(FacultyPolicy, 'update')
+  @Put(':id')
+  async updateFaculty(
+    @CurrentUser() _user: User,
+    @Param('id') id: string,
+    @Body() body: UpdateFacultyDTO,
+  ): Promise<AppResult<FacultyOut>> {
+    this.logger.debug('delegating update faculty to UpdateFacultyUseCase', {
+      id,
+      body,
+    })
+    const result = await this.updateFacultyUseCase.execute(
+      new UpdateFacultyParams({
+        id,
+        name: body.name,
+      }),
+    )
+    if (result.exception) {
+      this.logger.debug('failed to update faculty', {
+        error: result.exception,
+      })
+      return AppResult.failed(result.exception)
+    }
+    this.logger.debug('faculty updated', { data: result.data })
+    return AppResult.success(FacultyOut.fromFaculty(result.data!))
   }
 
   @ApiNoContentResponse({ description: 'Faculty successfully deleted' })

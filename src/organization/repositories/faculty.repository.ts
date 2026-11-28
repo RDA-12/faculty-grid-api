@@ -9,6 +9,7 @@ import {
 } from '../../common/app-exception.js'
 import { PaginatedResult, PaginationResult } from '../../common/pagination.js'
 import type { GetFacultiesParams } from '../user-cases/get-faculties.use-case.js'
+import type { UpdateFacultyParams } from '../user-cases/update-faculty.use-case.js'
 
 /**
  * Repository manage faculty data
@@ -81,6 +82,28 @@ export class FacultyRepository {
         }),
       }),
     )
+  }
+
+  async update(params: UpdateFacultyParams): Promise<AppResult<Faculty>> {
+    try {
+      this.logger.debug('start updating faculty', { params })
+      const facultyDb = await this.repository.findOne({
+        where: { id: params.id },
+      })
+      if (!facultyDb) {
+        this.logger.debug('faculty not found for update', { id: params.id })
+        return AppResult.failed(
+          new NotFoundException(`faculty with ID ${params.id} is not found`),
+        )
+      }
+      facultyDb.name = params.name
+      const updated = await this.repository.save(facultyDb)
+      this.logger.debug('faculty updated', { data: updated })
+      return AppResult.success(updated.toDomain())
+    } catch (error) {
+      this.logger.error('failed to update faculty', { error })
+      return AppResult.failed(new UnexpectedException(`${error as Error}`))
+    }
   }
 
   async deleteById(id: string): Promise<AppResult<null>> {

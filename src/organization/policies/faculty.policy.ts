@@ -8,6 +8,10 @@ export class FacultyPolicy {
     return user?.isA(Role.admin) ?? false
   }
 
+  update(user: AuthzUser | null) {
+    return user?.isA(Role.admin) ?? false
+  }
+
   delete(user: AuthzUser | null) {
     return user?.isA(Role.admin) ?? false
   }

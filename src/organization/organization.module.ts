@@ -3,6 +3,7 @@ import { FacultyRepository } from './repositories/faculty.repository.js'
 import { CreateFacultyUseCase } from './user-cases/create-faculty.use-case.js'
 import { FacultyController } from './controllers/faculty.controller.js'
 import { GetFacultiesUseCase } from './user-cases/get-faculties.use-case.js'
+import { UpdateFacultyUseCase } from './user-cases/update-faculty.use-case.js'
 import { DeleteFacultyUseCase } from './user-cases/delete-faculty.use-case.js'
 import { ProgramController } from './controllers/program.controller.js'
 import { ProgramRepository } from './repositories/program.repository.js'
@@ -28,6 +29,7 @@ import { DeleteTitleUseCase } from './user-cases/delete-title.use-case.js'
     TitleRepository,
     CreateFacultyUseCase,
     GetFacultiesUseCase,
+    UpdateFacultyUseCase,
     DeleteFacultyUseCase,
     CreateProgramUseCase,
     GetProgramsUseCase,

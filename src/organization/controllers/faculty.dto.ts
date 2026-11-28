@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { Faculty } from '../entities/faculty.entity.js'
 import { ApiProperty } from '@nestjs/swagger'
 import { PaginationQuery } from '../../common/pagination.js'
@@ -6,6 +6,19 @@ import { PaginationQuery } from '../../common/pagination.js'
 export class CreateFacultyDTO {
   @ApiProperty()
   @IsString()
+  name: string
+}
+
+export class UpdateFacultyDTO {
+  constructor(args?: Partial<UpdateFacultyDTO>) {
+    if (args) {
+      Object.assign(this, args)
+    }
+  }
+
+  @ApiProperty({ example: 'Faculty of Engineering' })
+  @IsString()
+  @IsNotEmpty()
   name: string
 }
 
